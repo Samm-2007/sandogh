@@ -84,6 +84,15 @@ function Dialog({ title, sub, children, onClose }: { title: string; sub?: string
       </div>{children}</div></div>;
 }
 
+export function Mark({ className = 'size-9' }: { className?: string }) {
+  return <svg viewBox="0 0 64 64" className={className} aria-label="پیوند">
+    <rect width="64" height="64" rx="16" fill="#0b0d12" />
+    {[[13, 13], [34, 13], [13, 34]].map(([x, y]) => <g key={x + '-' + y}><rect x={x} y={y} width="17" height="17" rx="5" fill="#10b981" />
+      <path d={`M${x + 4.5} ${y + 8.8}l3 3 5.5-6.3`} stroke="#fff" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" /></g>)}
+    <rect x="35" y="35" width="15" height="15" rx="4.2" fill="none" stroke="#f5b83d" strokeWidth="2" strokeDasharray="3.2 2.6" />
+  </svg>;
+}
+
 function Ring({ pct }: { pct: number }) {
   const r = 14, c = 2 * Math.PI * r;
   return <div className="relative grid size-9 shrink-0 place-items-center">
@@ -257,9 +266,12 @@ export default function App() {
     <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f6f6f4]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6">
         {/* brand + overall ring */}
+        <a href="/" className="flex items-center gap-2" title="پیوند · اتصال فروشگاه‌ها به اوانی"><Mark className="size-9 transition hover:rotate-[-6deg]" />
+          <div className="hidden leading-none lg:block"><div className="text-[16px] font-black tracking-tight">پیوند</div><div className="mt-1 text-[10px] font-medium text-stone-500">آوان‌تک · اوانی</div></div></a>
+        <span className="mx-0.5 hidden h-6 w-px bg-stone-200 sm:block" />
         <div className="flex items-center gap-2" title={`${fa(count('live'))} از ${fa(stores.length)} فروشگاه متصل شده`}>
           <Ring pct={overall} />
-          <div className="hidden leading-tight xl:block"><div className="text-[13px] font-extrabold">اتصال فروشگاه‌ها</div>
+          <div className="hidden leading-tight xl:block"><div className="text-[12px] font-bold">پیشرفت کل</div>
             <div className="text-[11px] text-stone-500">{fa(count('live'))}/{fa(stores.length)} متصل</div></div>
         </div>
         <span className="mx-1 hidden h-6 w-px bg-stone-200 xl:block" />
@@ -366,7 +378,7 @@ export default function App() {
             <p className="text-[15px] font-bold">نتیجه‌ای پیدا نشد</p>
             <button onClick={() => { setQ(''); setOwner(''); setStatus(''); }} className={`${btnGhost} mt-4`}>پاک کردن فیلترها</button>
           </> : <>
-            <div className="mx-auto mb-5 flex w-fit gap-1.5">{[1, 1, 1, 0, 0].map((on, i) => <span key={i} className={`size-7 rounded-[9px] ${on ? 'bg-emerald-500' : 'border border-stone-300 bg-white'}`} />)}</div>
+            <Mark className="mx-auto mb-5 size-16" />
             <p className="text-[18px] font-extrabold">اولین فروشگاه را اضافه کنید</p>
             <p className="mx-auto mt-2 max-w-sm text-[13px] leading-6 text-stone-500">هر فروشگاه یک ردیف است و هر مرحله یک خانه. با یک کلیک مرحله را پاس کنید.</p>
             <button onClick={() => setAdding(true)} className={`${btnDark} mt-6`}><Icon d={I.plus} w={2.5} />افزودن فروشگاه</button>
@@ -405,7 +417,7 @@ export default function App() {
           </article>; })}
         {loaded && !rows.length && <div className="rounded-[20px] border border-stone-200 bg-white px-6 py-16 text-center">
           {stores.length ? <><p className="font-bold">نتیجه‌ای پیدا نشد</p><button onClick={() => { setQ(''); setOwner(''); setStatus(''); }} className={`${btnGhost} mt-4`}>پاک کردن فیلترها</button></>
-            : <><p className="text-[17px] font-extrabold">اولین فروشگاه را اضافه کنید</p><p className="mt-2 text-[13px] leading-6 text-stone-500">هر مرحله را با یک لمس پاس کنید.</p></>}
+            : <><Mark className="mx-auto mb-4 size-12" /><p className="text-[17px] font-extrabold">اولین فروشگاه را اضافه کنید</p><p className="mt-2 text-[13px] leading-6 text-stone-500">هر مرحله را با یک لمس پاس کنید.</p></>}
         </div>}
       </section>
 

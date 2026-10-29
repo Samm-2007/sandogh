@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64"><style>@font-face{font-family:Y;src:url(/fonts/IRANYekanXFaNum-Black.ttf)}@font-face{font-family:YM;src:url(/fonts/IRANYekanXFaNum-Medium.ttf)}</style>
+<g transform="translate(236 0)">  <rect width="64" height="64" rx="16" fill="#0b0d12"/>
+  <rect x="13" y="13" width="17" height="17" rx="5" fill="#10b981"/>
+  <path d="M17.5 21.8l3 3 5.5-6.3" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="34" y="13" width="17" height="17" rx="5" fill="#10b981"/>
+  <path d="M38.5 21.8l3 3 5.5-6.3" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="13" y="34" width="17" height="17" rx="5" fill="#10b981"/>
+  <path d="M17.5 42.8l3 3 5.5-6.3" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="35" y="35" width="15" height="15" rx="4.2" fill="none" stroke="#f5b83d" stroke-width="2" stroke-dasharray="3.2 2.6"/>
+</g>
+<text x="222" y="34" text-anchor="end" font-family="Y,IRANYekanX,sans-serif" font-weight="900" font-size="30" fill="#0b0d12">پیوند</text>
+<text x="222" y="54" text-anchor="end" font-family="YM,IRANYekanX,sans-serif" font-weight="500" font-size="12" fill="#78716c">اتصال فروشگاه‌ها به اوانی</text></svg>
