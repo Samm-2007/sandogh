@@ -12,7 +12,7 @@ let state: State = fs.existsSync(DATA) ? JSON.parse(fs.readFileSync(DATA, 'utf8'
 const save = () => { const tmp = DATA + '.tmp'; fs.writeFileSync(tmp, JSON.stringify(state, null, 1)); fs.renameSync(tmp, DATA); };
 if (!fs.existsSync(DATA)) save();
 
-const MIME: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon' };
+const MIME: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.ttf': 'font/ttf', '.woff2': 'font/woff2' };
 const json = (res: http.ServerResponse, code: number, body: unknown) => {
   res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(body));
 };
@@ -32,6 +32,6 @@ http.createServer((req, res) => {
   let file = path.join(DIST, path.normalize(url.pathname).replace(/^(\.\.[/\\])+/, ''));
   if (!file.startsWith(DIST) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(DIST, 'index.html');
   res.writeHead(200, { 'content-type': MIME[path.extname(file)] || 'application/octet-stream',
-    'cache-control': file.includes('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache' });
+    'cache-control': (file.includes('/assets/') || file.includes('/fonts/')) ? 'public, max-age=31536000, immutable' : 'no-cache' });
   fs.createReadStream(file).pipe(res);
 }).listen(PORT, () => console.log('listening on', PORT));
