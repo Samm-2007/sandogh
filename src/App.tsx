@@ -54,6 +54,7 @@ const I = {
   pen: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   trash: <path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" />,
   arrow: <path d="M15 6l-6 6 6 6" />,
+  sort: <path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3" />,
 };
 const Icon = ({ d, className = 'size-4', w = 2 }: { d: ReactNode; className?: string; w?: number }) =>
   <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
@@ -81,6 +82,14 @@ function Dialog({ title, sub, children, onClose }: { title: string; sub?: string
         <div><h2 className="text-[17px] font-extrabold tracking-tight">{title}</h2>{sub && <p className="mt-1 text-[13px] text-stone-500">{sub}</p>}</div>
         <button onClick={onClose} className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer"><Icon d={I.x} /></button>
       </div>{children}</div></div>;
+}
+
+function Ring({ pct }: { pct: number }) {
+  const r = 14, c = 2 * Math.PI * r;
+  return <div className="relative grid size-9 shrink-0 place-items-center">
+    <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90"><circle cx="18" cy="18" r={r} fill="none" stroke="#e7e5e4" strokeWidth="3.5" />
+      <circle cx="18" cy="18" r={r} fill="none" stroke={pct === 100 ? '#10b981' : '#0b0d12'} strokeWidth="3.5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c - (c * pct) / 100} style={{ transition: 'stroke-dashoffset .7s' }} /></svg>
+    <span className="text-[10px] font-black tabular-nums">{fa(pct)}</span></div>;
 }
 
 /* ───────── store form ───────── */
@@ -244,61 +253,60 @@ export default function App() {
   const filtered = q || owner || status;
 
   return <div className="min-h-screen text-ink">
-    {/* top bar */}
-    <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f6f6f4]/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1680px] items-center gap-2 px-4 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="grid size-8 place-items-center rounded-[10px] bg-ink text-[15px] font-black text-white">ا</div>
-          <div className="leading-tight"><div className="text-[14px] font-extrabold">اتصال فروشگاه‌ها</div><div className="text-[11px] text-stone-500">اوانی · آوان‌تک</div></div>
+    {/* unified bar */}
+    <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f6f6f4]/90 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6">
+        {/* brand + overall ring */}
+        <div className="flex items-center gap-2" title={`${fa(count('live'))} از ${fa(stores.length)} فروشگاه متصل شده`}>
+          <Ring pct={overall} />
+          <div className="hidden leading-tight xl:block"><div className="text-[13px] font-extrabold">اتصال فروشگاه‌ها</div>
+            <div className="text-[11px] text-stone-500">{fa(count('live'))}/{fa(stores.length)} متصل</div></div>
         </div>
-        <div className="flex-1" />
-        <span className="hidden items-center gap-1.5 text-[12px] text-stone-500 sm:flex" title={online ? 'تغییرات برای همه همگام است' : 'ارتباط با سرور قطع است'}>
-          <span className="relative flex size-2">{online && <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-60" />}<span className={`relative size-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-rose-500'}`} /></span>
-          {online ? 'زنده' : 'آفلاین'}</span>
-        <button onClick={() => setManaging(true)} className={`${btnGhost} px-2.5 sm:px-3.5`} aria-label="مراحل"><Icon d={I.sliders} /><span className="hidden sm:inline">مراحل</span></button>
-        <button onClick={() => setAdding(true)} className={`${btnDark} hidden sm:inline-flex`}><Icon d={I.plus} w={2.5} />فروشگاه<kbd className="mr-1 rounded bg-white/15 px-1.5 text-[10px] font-medium">N</kbd></button>
+        <span className="mx-1 hidden h-6 w-px bg-stone-200 xl:block" />
+
+        {/* search */}
+        <div className="relative order-last w-full sm:order-none sm:w-auto sm:min-w-44 sm:flex-1 lg:max-w-xs">
+          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400"><Icon d={I.search} /></span>
+          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجو…"
+            className="h-9 w-full rounded-xl border border-stone-200 bg-white pr-8 pl-8 text-[13px] outline-none placeholder:text-stone-400 focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60" />
+          {q ? <button onClick={() => setQ('')} className="absolute left-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-stone-400 hover:text-ink cursor-pointer"><Icon d={I.x} className="size-3.5" /></button>
+            : <kbd className="absolute left-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-stone-200 px-1 text-[10px] text-stone-400 sm:block">/</kbd>}
+        </div>
+
+        {/* status segmented: dots + counts */}
+        <div className="flex h-9 items-center rounded-xl border border-stone-200 bg-white p-0.5">
+          {([['', 'همه', stores.length], ['doing', STATUS.doing.label, count('doing')], ['idle', STATUS.idle.label, count('idle')], ['live', STATUS.live.label, count('live')]] as const).map(([k, l, n]) =>
+            <button key={k} onClick={() => setStatus(k)} title={l}
+              className={`flex h-full items-center gap-1 sm:gap-1.5 rounded-[10px] px-2 sm:px-2.5 text-[12px] font-semibold tabular-nums transition cursor-pointer ${status === k ? 'bg-ink text-white' : 'text-stone-600 hover:bg-stone-100'}`}>
+              {k ? <span className={`size-2 rounded-full ${STATUS[k].dot}`} /> : <span>همه</span>}{fa(n)}</button>)}
+        </div>
+
+        {/* owners: stacked avatars */}
+        {owners.length > 0 && <div className="flex h-9 min-w-0 max-w-[64px] items-center overflow-x-auto rounded-xl border border-stone-200 bg-white px-1.5 [scrollbar-width:none] sm:max-w-none">
+          {owner && <button onClick={() => setOwner('')} title="همه مسئولین" className="ml-1 rounded p-0.5 text-stone-400 hover:text-ink cursor-pointer"><Icon d={I.x} className="size-3.5" /></button>}
+          <div className="flex shrink-0 -space-x-1.5 space-x-reverse py-1">
+            {owners.map((o) => <button key={o} onClick={() => setOwner(owner === o ? '' : o)} title={`${o} · ${fa(stores.filter((s) => s.owner === o).length)} فروشگاه`}
+              className={`rounded-full ring-2 transition cursor-pointer hover:z-10 hover:scale-110 ${owner === o ? 'z-10 scale-110 ring-ink' : owner ? 'opacity-35 ring-white' : 'ring-white'}`}>
+              <Avatar name={o} size="size-6 text-[10px]" /></button>)}
+          </div>
+        </div>}
+
+        {/* sort as icon menu */}
+        <label className="relative grid size-9 place-items-center rounded-xl border border-stone-200 bg-white text-stone-600 hover:border-stone-300 cursor-pointer" title="مرتب‌سازی">
+          <Icon d={I.sort} />
+          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="absolute inset-0 cursor-pointer opacity-0">
+            <option value="recent">آخرین فعالیت</option><option value="least">کمترین پیشرفت</option><option value="most">بیشترین پیشرفت</option><option value="name">نام</option></select>
+        </label>
+
+        <div className="hidden flex-1 sm:block" /><div className="flex-1 sm:hidden" />
+        <span className="relative hidden size-2 sm:flex" title={online ? 'زنده — همگام برای همه' : 'آفلاین'}>
+          {online && <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-60" />}<span className={`relative size-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-rose-500'}`} /></span>
+        <button onClick={() => setManaging(true)} title="مدیریت مراحل" className="grid size-9 place-items-center rounded-xl border border-stone-200 bg-white text-stone-600 hover:border-stone-300 cursor-pointer"><Icon d={I.sliders} /></button>
+        <button onClick={() => setAdding(true)} title="فروشگاه جدید (N)" className="hidden h-9 items-center gap-1.5 rounded-xl bg-ink px-3 text-[13px] font-semibold text-white hover:bg-stone-800 cursor-pointer sm:flex"><Icon d={I.plus} w={2.5} />فروشگاه</button>
       </div>
     </header>
 
-    <main className="mx-auto max-w-[1680px] px-4 pb-28 pt-5 sm:px-6 sm:pb-16 sm:pt-8">
-      {/* hero summary */}
-      <section className="mb-5 grid items-end gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-[1fr_auto]">
-        <div>
-          <p className="text-[13px] font-semibold text-stone-500">پیشرفت کل</p>
-          <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-[44px] sm:text-[56px] font-black leading-none tracking-tighter tabular-nums">{fa(overall)}<span className="text-[28px] text-stone-300">٪</span></span>
-            <span className="text-[14px] text-stone-500">{fa(count('live'))} از {fa(stores.length)} فروشگاه به اوانی متصل شده‌اند</span>
-          </div>
-          {/* segmented distribution */}
-          <div className="mt-4 flex h-2.5 w-full max-w-2xl gap-0.5 overflow-hidden rounded-full bg-stone-200/70">
-            {stores.length > 0 && (['live', 'doing', 'idle'] as Status[]).map((k) => count(k) > 0 &&
-              <div key={k} className={`${STATUS[k].dot} transition-all duration-700`} style={{ width: `${(count(k) / stores.length) * 100}%` }} />)}
-          </div>
-        </div>
-        <div className="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none]"><div className="flex shrink-0 gap-1 rounded-2xl border border-stone-200 bg-white p-1">
-          {([['', 'همه', stores.length], ['doing', 'در حال اتصال', count('doing')], ['idle', 'شروع نشده', count('idle')], ['live', 'متصل شد', count('live')]] as const).map(([k, l, n]) =>
-            <button key={k} onClick={() => setStatus(k)}
-              className={`flex shrink-0 items-center gap-2 rounded-xl px-3 sm:px-3.5 py-2 text-[13px] font-semibold transition cursor-pointer ${status === k ? 'bg-ink text-white' : 'text-stone-600 hover:bg-stone-100'}`}>
-              {k && <span className={`size-1.5 rounded-full ${STATUS[k].dot}`} />}{l}<span className={`tabular-nums ${status === k ? 'text-white/60' : 'text-stone-400'}`}>{fa(n)}</span></button>)}
-        </div></div>
-      </section>
-
-      {/* toolbar */}
-      <section className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-auto sm:min-w-64 sm:flex-1">
-          <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400"><Icon d={I.search} /></span>
-          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجوی فروشگاه، مسئول یا متن یادداشت…" className={`${field} pr-10 pl-10`} />
-          <kbd className="absolute left-3 hidden sm:block top-1/2 -translate-y-1/2 rounded-md border border-stone-200 px-1.5 text-[11px] text-stone-400">/</kbd>
-        </div>
-        <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:px-0 [scrollbar-width:none] order-last sm:order-none">
-          {owners.map((o) => <button key={o} onClick={() => setOwner(owner === o ? '' : o)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-3 pr-1 text-[12px] font-medium transition cursor-pointer ${owner === o ? 'border-ink bg-ink text-white' : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'}`}>
-            <Avatar name={o} size="size-6 text-[10px]" />{o}<span className={owner === o ? 'text-white/60' : 'text-stone-400'}>{fa(stores.filter((s) => s.owner === o).length)}</span></button>)}
-        </div>
-        <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={`${field} w-auto flex-1 sm:flex-none cursor-pointer py-2`}>
-          <option value="recent">آخرین فعالیت</option><option value="least">کمترین پیشرفت</option><option value="most">بیشترین پیشرفت</option><option value="name">نام</option></select>
-      </section>
-
+    <main className="mx-auto max-w-[1680px] px-3 pb-28 pt-3 sm:px-6 sm:pb-16 sm:pt-4">
       {/* matrix */}
       <section className="hidden md:block overflow-hidden rounded-[22px] border border-stone-200/80 bg-white shadow-[0_1px_0_rgb(0_0_0/.03),0_12px_40px_-24px_rgb(0_0_0/.25)]">
         <div className="overflow-x-auto">
