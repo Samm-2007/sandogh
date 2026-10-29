@@ -75,8 +75,8 @@ function useEsc(fn: () => void) {
 }
 function Dialog({ title, sub, children, onClose }: { title: string; sub?: string; children: ReactNode; onClose: () => void }) {
   useEsc(onClose);
-  return <div className="fade fixed inset-0 z-50 grid place-items-center bg-stone-900/25 p-4 backdrop-blur-[2px]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <div className="rise w-full max-w-md rounded-[22px] bg-white p-6 shadow-[0_30px_80px_-20px_rgb(0_0_0/.35)]">
+  return <div className="fade fixed inset-0 z-50 grid items-end bg-stone-900/25 sm:place-items-center sm:p-4 backdrop-blur-[2px]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="rise w-full max-h-[92dvh] overflow-auto rounded-t-[24px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-md sm:rounded-[22px] sm:p-6 shadow-[0_30px_80px_-20px_rgb(0_0_0/.35)]">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div><h2 className="text-[17px] font-extrabold tracking-tight">{title}</h2>{sub && <p className="mt-1 text-[13px] text-stone-500">{sub}</p>}</div>
         <button onClick={onClose} className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer"><Icon d={I.x} /></button>
@@ -115,7 +115,7 @@ function StageManager({ stages, storeId, dispatch, hint }: { stages: Stage[]; st
           onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== g.title) dispatch({ t: 'renameStage', storeId, stageId: g.id, title: v }); }}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()} />
         <button onClick={() => confirm(`مرحله «${g.title}» حذف شود؟`) && dispatch({ t: 'removeStage', storeId, stageId: g.id })}
-          className="rounded-lg p-1.5 text-stone-300 opacity-0 transition group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 cursor-pointer"><Icon d={I.trash} /></button>
+          className="rounded-lg p-1.5 text-stone-300 transition sm:opacity-0 sm:group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 cursor-pointer"><Icon d={I.trash} /></button>
       </li>)}
     </ol>
     <form className="mt-3 flex gap-2 border-t border-stone-100 pt-3" onSubmit={(e) => { e.preventDefault(); if (title.trim()) { dispatch({ t: 'addStage', storeId, id: 'g' + uid(), title: title.trim() }); setTitle(''); } }}>
@@ -144,8 +144,8 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
   useEsc(onClose);
   const addNote = () => { if (note.trim()) { dispatch({ t: 'addNote', storeId: store.id, id: uid(), text: note.trim(), at: Date.now() }); setNote(''); } };
   return <div className="fade fixed inset-0 z-40 bg-stone-900/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <aside className="drawer absolute inset-y-2 left-2 flex w-[min(560px,calc(100%-16px))] flex-col overflow-hidden rounded-[22px] bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/.4)]">
-      <header className="border-b border-stone-100 px-6 pb-5 pt-5">
+    <aside className="drawer absolute inset-0 flex w-full flex-col overflow-hidden bg-white sm:inset-y-2 sm:left-2 sm:right-auto sm:w-[min(560px,calc(100%-16px))] sm:rounded-[22px] bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/.4)]">
+      <header className="border-b border-stone-100 px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6">
         <div className="mb-4 flex items-center justify-between">
           <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${st.soft} ${st.text}`}><span className={`size-1.5 rounded-full ${st.dot}`} />{st.label}</span>
           <div className="flex gap-1">
@@ -163,7 +163,7 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
       </header>
 
       <div className="flex-1 overflow-auto">
-        <section className="px-6 py-5">
+        <section className="px-5 py-5 sm:px-6">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-[13px] font-bold text-stone-500">مراحل</h3>
             <button onClick={() => setMode(mode === 'list' ? 'manage' : 'list')} className="text-[12px] font-semibold text-stone-500 underline-offset-4 hover:text-ink hover:underline cursor-pointer">
@@ -184,20 +184,20 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
             </ol>}
         </section>
 
-        <section className="border-t border-stone-100 bg-stone-50/60 px-6 py-5">
+        <section className="border-t border-stone-100 bg-stone-50/60 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-6">
           <h3 className="mb-3 text-[13px] font-bold text-stone-500">یادداشت‌ها {store.notes.length > 0 && <span className="text-stone-400">· {fa(store.notes.length)}</span>}</h3>
           <div className="rounded-2xl border border-stone-200 bg-white p-1.5 focus-within:border-stone-400 focus-within:ring-4 focus-within:ring-stone-200/60 transition">
             <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="مشکل، پیگیری، یا هر نکته‌ای…"
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addNote(); } }}
               className="block w-full resize-none bg-transparent px-2.5 py-2 text-[14px] leading-7 outline-none placeholder:text-stone-400" />
-            <div className="flex items-center justify-between px-2 pb-1"><span className="text-[11px] text-stone-400">Enter ثبت · Shift+Enter خط جدید</span>
+            <div className="flex items-center justify-between gap-2 px-2 pb-1"><span className="sm:hidden" /><span className="hidden text-[11px] text-stone-400 sm:inline">Enter ثبت · Shift+Enter خط جدید</span>
               <button onClick={addNote} disabled={!note.trim()} className={`${btnDark} px-3 py-1.5`}>ثبت</button></div>
           </div>
           <ul className="mt-4 space-y-2">
             {store.notes.map((n) => <li key={n.id} className="group rise rounded-2xl border border-stone-200/70 bg-white px-4 py-3">
               <p className="whitespace-pre-wrap text-[14px] leading-7 text-stone-800">{n.text}</p>
               <div className="mt-1 flex items-center justify-between text-[11px] text-stone-400"><span>{ago(n.at)}</span>
-                <button onClick={() => confirm('یادداشت حذف شود؟') && dispatch({ t: 'removeNote', storeId: store.id, id: n.id })} className="opacity-0 transition group-hover:opacity-100 hover:text-rose-600 cursor-pointer">حذف</button></div>
+                <button onClick={() => confirm('یادداشت حذف شود؟') && dispatch({ t: 'removeNote', storeId: store.id, id: n.id })} className="transition sm:opacity-0 sm:group-hover:opacity-100 hover:text-rose-600 cursor-pointer">حذف</button></div>
             </li>)}
           </ul>
           {!store.notes.length && <p className="py-6 text-center text-[13px] text-stone-400">هنوز یادداشتی ثبت نشده</p>}
@@ -246,7 +246,7 @@ export default function App() {
   return <div className="min-h-screen text-ink">
     {/* top bar */}
     <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f6f6f4]/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1680px] items-center gap-3 px-6 py-3">
+      <div className="mx-auto flex max-w-[1680px] items-center gap-2 px-4 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
         <div className="flex items-center gap-2.5">
           <div className="grid size-8 place-items-center rounded-[10px] bg-ink text-[15px] font-black text-white">ا</div>
           <div className="leading-tight"><div className="text-[14px] font-extrabold">اتصال فروشگاه‌ها</div><div className="text-[11px] text-stone-500">اوانی · آوان‌تک</div></div>
@@ -255,18 +255,18 @@ export default function App() {
         <span className="hidden items-center gap-1.5 text-[12px] text-stone-500 sm:flex" title={online ? 'تغییرات برای همه همگام است' : 'ارتباط با سرور قطع است'}>
           <span className="relative flex size-2">{online && <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-60" />}<span className={`relative size-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-rose-500'}`} /></span>
           {online ? 'زنده' : 'آفلاین'}</span>
-        <button onClick={() => setManaging(true)} className={btnGhost}><Icon d={I.sliders} />مراحل</button>
-        <button onClick={() => setAdding(true)} className={btnDark}><Icon d={I.plus} w={2.5} />فروشگاه<kbd className="mr-1 rounded bg-white/15 px-1.5 text-[10px] font-medium">N</kbd></button>
+        <button onClick={() => setManaging(true)} className={`${btnGhost} px-2.5 sm:px-3.5`} aria-label="مراحل"><Icon d={I.sliders} /><span className="hidden sm:inline">مراحل</span></button>
+        <button onClick={() => setAdding(true)} className={`${btnDark} hidden sm:inline-flex`}><Icon d={I.plus} w={2.5} />فروشگاه<kbd className="mr-1 rounded bg-white/15 px-1.5 text-[10px] font-medium">N</kbd></button>
       </div>
     </header>
 
-    <main className="mx-auto max-w-[1680px] px-6 pb-16 pt-8">
+    <main className="mx-auto max-w-[1680px] px-4 pb-28 pt-5 sm:px-6 sm:pb-16 sm:pt-8">
       {/* hero summary */}
-      <section className="mb-8 grid items-end gap-6 lg:grid-cols-[1fr_auto]">
+      <section className="mb-5 grid items-end gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-[1fr_auto]">
         <div>
           <p className="text-[13px] font-semibold text-stone-500">پیشرفت کل</p>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="text-[56px] font-black leading-none tracking-tighter tabular-nums">{fa(overall)}<span className="text-[28px] text-stone-300">٪</span></span>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-[44px] sm:text-[56px] font-black leading-none tracking-tighter tabular-nums">{fa(overall)}<span className="text-[28px] text-stone-300">٪</span></span>
             <span className="text-[14px] text-stone-500">{fa(count('live'))} از {fa(stores.length)} فروشگاه به اوانی متصل شده‌اند</span>
           </div>
           {/* segmented distribution */}
@@ -275,32 +275,32 @@ export default function App() {
               <div key={k} className={`${STATUS[k].dot} transition-all duration-700`} style={{ width: `${(count(k) / stores.length) * 100}%` }} />)}
           </div>
         </div>
-        <div className="flex gap-1 rounded-2xl border border-stone-200 bg-white p-1">
+        <div className="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0 [scrollbar-width:none]"><div className="flex shrink-0 gap-1 rounded-2xl border border-stone-200 bg-white p-1">
           {([['', 'همه', stores.length], ['doing', 'در حال اتصال', count('doing')], ['idle', 'شروع نشده', count('idle')], ['live', 'متصل شد', count('live')]] as const).map(([k, l, n]) =>
             <button key={k} onClick={() => setStatus(k)}
-              className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-[13px] font-semibold transition cursor-pointer ${status === k ? 'bg-ink text-white' : 'text-stone-600 hover:bg-stone-100'}`}>
+              className={`flex shrink-0 items-center gap-2 rounded-xl px-3 sm:px-3.5 py-2 text-[13px] font-semibold transition cursor-pointer ${status === k ? 'bg-ink text-white' : 'text-stone-600 hover:bg-stone-100'}`}>
               {k && <span className={`size-1.5 rounded-full ${STATUS[k].dot}`} />}{l}<span className={`tabular-nums ${status === k ? 'text-white/60' : 'text-stone-400'}`}>{fa(n)}</span></button>)}
-        </div>
+        </div></div>
       </section>
 
       {/* toolbar */}
       <section className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="relative min-w-64 flex-1">
+        <div className="relative w-full sm:w-auto sm:min-w-64 sm:flex-1">
           <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400"><Icon d={I.search} /></span>
           <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجوی فروشگاه، مسئول یا متن یادداشت…" className={`${field} pr-10 pl-10`} />
-          <kbd className="absolute left-3 top-1/2 -translate-y-1/2 rounded-md border border-stone-200 px-1.5 text-[11px] text-stone-400">/</kbd>
+          <kbd className="absolute left-3 hidden sm:block top-1/2 -translate-y-1/2 rounded-md border border-stone-200 px-1.5 text-[11px] text-stone-400">/</kbd>
         </div>
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:px-0 [scrollbar-width:none] order-last sm:order-none">
           {owners.map((o) => <button key={o} onClick={() => setOwner(owner === o ? '' : o)}
             className={`flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-3 pr-1 text-[12px] font-medium transition cursor-pointer ${owner === o ? 'border-ink bg-ink text-white' : 'border-stone-200 bg-white text-stone-600 hover:border-stone-400'}`}>
             <Avatar name={o} size="size-6 text-[10px]" />{o}<span className={owner === o ? 'text-white/60' : 'text-stone-400'}>{fa(stores.filter((s) => s.owner === o).length)}</span></button>)}
         </div>
-        <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={`${field} w-auto cursor-pointer py-2`}>
+        <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={`${field} w-auto flex-1 sm:flex-none cursor-pointer py-2`}>
           <option value="recent">آخرین فعالیت</option><option value="least">کمترین پیشرفت</option><option value="most">بیشترین پیشرفت</option><option value="name">نام</option></select>
       </section>
 
       {/* matrix */}
-      <section className="overflow-hidden rounded-[22px] border border-stone-200/80 bg-white shadow-[0_1px_0_rgb(0_0_0/.03),0_12px_40px_-24px_rgb(0_0_0/.25)]">
+      <section className="hidden md:block overflow-hidden rounded-[22px] border border-stone-200/80 bg-white shadow-[0_1px_0_rgb(0_0_0/.03),0_12px_40px_-24px_rgb(0_0_0/.25)]">
         <div className="overflow-x-auto">
           <div className="min-w-max">
             {/* head */}
@@ -366,7 +366,46 @@ export default function App() {
         </div>}
       </section>
 
-      {stores.length > 0 && <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-stone-500">
+      <section className="space-y-2.5 md:hidden">
+        {rows.map((s) => {
+          const p = progress(s); const st = STATUS[statusOf(s)]; const next = s.stages.find((g) => !s.done[g.id]); const n = s.notes[0];
+          return <article key={s.id} className={`rounded-[20px] border bg-white p-4 shadow-[0_8px_24px_-18px_rgb(0_0_0/.3)] ${p.pct === 100 ? 'border-emerald-200' : 'border-stone-200/80'}`}>
+            <button onClick={() => setOpenId(s.id)} className="flex w-full items-center gap-3 text-right cursor-pointer">
+              <Avatar name={s.owner} size="size-10 text-[14px]" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-extrabold">{s.name}</div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-stone-500"><span className="truncate">{s.owner}</span><span className="text-stone-300">·</span>
+                  <span className={`flex shrink-0 items-center gap-1 ${st.text}`}><span className={`size-1.5 rounded-full ${st.dot}`} />{st.label}</span></div>
+              </div>
+              <div className="text-left"><div className="text-[22px] font-black leading-none tabular-nums">{fa(p.pct)}<span className="text-[13px] text-stone-300">٪</span></div>
+                <div className="mt-1 text-[11px] tabular-nums text-stone-400">{fa(p.done)}/{fa(p.total)}</div></div>
+            </button>
+            <div className="mt-3.5 grid grid-cols-[repeat(auto-fill,minmax(36px,1fr))] gap-1.5">
+              {s.stages.map((g, i) => { const on = !!s.done[g.id];
+                return <button key={g.id} onClick={() => toggle(s, g.id)} aria-label={g.title}
+                  className={`grid aspect-square place-items-center rounded-[10px] text-[12px] font-bold tabular-nums transition active:scale-90 cursor-pointer
+                  ${on ? 'bg-emerald-500 text-white' : next?.id === g.id ? 'border-[1.5px] border-dashed border-stone-400 bg-white text-stone-500' : 'border border-stone-200 bg-white text-stone-300'}`}>
+                  {on ? <span className="tick"><Icon d={I.check} w={3} /></span> : fa(i + 1)}</button>; })}
+            </div>
+            <div className="mt-2.5 truncate text-[12px] text-stone-500">{next ? <>بعدی: <span className="font-semibold text-stone-800">{next.title}</span></> : <span className="font-semibold text-emerald-600">همه مراحل انجام شد</span>}</div>
+            <button onClick={() => setOpenId(s.id)} className="mt-3 flex w-full items-start gap-2 rounded-xl bg-stone-50 px-3 py-2.5 text-right cursor-pointer">
+              {n ? <><span className="mt-1 shrink-0 text-amber-500"><Icon d={I.note} className="size-3.5" /></span>
+                <span className="min-w-0 flex-1"><span className="line-clamp-2 text-[13px] leading-6 text-stone-700">{n.text}</span>
+                  <span className="text-[11px] text-stone-400">{ago(n.at)}{s.notes.length > 1 && ` · ${fa(s.notes.length - 1)}+ یادداشت دیگر`}</span></span></>
+                : <span className="text-[12px] text-stone-400">+ افزودن یادداشت</span>}
+            </button>
+          </article>; })}
+        {loaded && !rows.length && <div className="rounded-[20px] border border-stone-200 bg-white px-6 py-16 text-center">
+          {stores.length ? <><p className="font-bold">نتیجه‌ای پیدا نشد</p><button onClick={() => { setQ(''); setOwner(''); setStatus(''); }} className={`${btnGhost} mt-4`}>پاک کردن فیلترها</button></>
+            : <><p className="text-[17px] font-extrabold">اولین فروشگاه را اضافه کنید</p><p className="mt-2 text-[13px] leading-6 text-stone-500">هر مرحله را با یک لمس پاس کنید.</p></>}
+        </div>}
+      </section>
+
+      <button onClick={() => setAdding(true)} aria-label="افزودن فروشگاه"
+        className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-5 z-20 flex items-center gap-2 rounded-full bg-ink py-3.5 pl-5 pr-4 text-[14px] font-bold text-white shadow-[0_12px_30px_-8px_rgb(0_0_0/.5)] active:scale-95 sm:hidden">
+        <Icon d={I.plus} w={2.5} className="size-5" />فروشگاه</button>
+
+      {stores.length > 0 && <p className="mt-4 hidden md:flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-stone-500">
         <span className="flex items-center gap-1.5"><span className="size-3.5 rounded-[5px] bg-emerald-500" />پاس شد</span>
         <span className="flex items-center gap-1.5"><span className="size-3.5 rounded-[5px] border-[1.5px] border-dashed border-stone-400" />مرحله بعدی</span>
         <span className="flex items-center gap-1.5"><span className="size-3.5 rounded-[5px] border border-stone-200 bg-white" />انجام نشده</span>

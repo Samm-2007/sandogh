@@ -25,3 +25,5 @@ body { background: #f6f6f4; }
 @keyframes tick { 0% { transform: scale(.6) } 100% { transform: scale(1) } }
 ::-webkit-scrollbar { width: 10px; height: 10px }
 ::-webkit-scrollbar-thumb { background: #d4d4d0; border-radius: 99px; border: 3px solid transparent; background-clip: content-box }
+@media (max-width: 640px) { input, textarea, select { font-size: 16px !important } }
+button { -webkit-tap-highlight-color: transparent }
