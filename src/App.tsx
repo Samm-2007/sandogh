@@ -379,16 +379,13 @@ export default function App() {
         {rows.map((s) => {
           const p = progress(s); const st = STATUS[statusOf(s)];
           return <button key={s.id} onClick={() => setOpenId(s.id)}
-            className="flex w-full items-center gap-3 border-b border-stone-100 px-3.5 py-3 text-right last:border-0 active:bg-stone-50 cursor-pointer">
+            className="flex w-full items-center gap-3 border-b border-stone-100 px-3.5 py-3.5 text-right last:border-0 active:bg-stone-50 cursor-pointer">
             <span className={`size-2 shrink-0 rounded-full ${st.dot}`} title={st.label} />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[14px] font-bold">{s.name}</span>
-              <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-stone-500"><Avatar name={s.owner} size="size-4 text-[9px]" /><span className="truncate">{s.owner}</span></span>
+            <span className="flex min-w-0 flex-1 items-baseline gap-2">
+              <span className="truncate text-[14px] font-bold">{s.name}</span>
+              <span className="shrink-0 truncate text-[12px] text-stone-400">{s.owner}</span>
             </span>
-            <span className="flex w-20 shrink-0 flex-col items-end gap-1">
-              <span className="text-[13px] font-black tabular-nums">{fa(p.pct)}٪</span>
-              <Bar pct={p.pct} className="w-full" />
-            </span>
+            <Bar pct={p.pct} className="w-16 shrink-0" />
             <span className="shrink-0 text-stone-300"><Icon d={I.arrow} className="size-4" /></span>
           </button>; })}
         {loaded && !rows.length && <div className="px-6 py-16 text-center">
