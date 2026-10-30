@@ -375,35 +375,23 @@ export default function App() {
         </div>}
       </section>
 
-      <section className="space-y-2.5 md:hidden">
+      <section className="overflow-hidden rounded-[18px] border border-stone-200/80 bg-white md:hidden">
         {rows.map((s) => {
-          const p = progress(s); const st = STATUS[statusOf(s)]; const next = s.stages.find((g) => !s.done[g.id]); const n = s.notes[0];
-          return <article key={s.id} className={`rounded-[20px] border bg-white p-4 shadow-[0_8px_24px_-18px_rgb(0_0_0/.3)] ${p.pct === 100 ? 'border-emerald-200' : 'border-stone-200/80'}`}>
-            <button onClick={() => setOpenId(s.id)} className="flex w-full items-center gap-3 text-right cursor-pointer">
-              <Avatar name={s.owner} size="size-10 text-[14px]" />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[15px] font-extrabold">{s.name}</div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-stone-500"><span className="truncate">{s.owner}</span><span className="text-stone-300">·</span>
-                  <span className={`flex shrink-0 items-center gap-1 ${st.text}`}><span className={`size-1.5 rounded-full ${st.dot}`} />{st.label}</span></div>
-              </div>
-              <div className="text-left"><div className="text-[22px] font-black leading-none tabular-nums">{fa(p.pct)}<span className="text-[13px] text-stone-300">٪</span></div>
-                <div className="mt-1 text-[11px] tabular-nums text-stone-400">{fa(p.done)}/{fa(p.total)}</div></div>
-            </button>
-            <div className="mt-3.5 grid grid-cols-[repeat(auto-fill,minmax(36px,1fr))] gap-1.5">
-              {s.stages.map((g, i) => { const on = !!s.done[g.id];
-                return <button key={g.id} onClick={() => toggle(s, g.id)} aria-label={g.title}
-                  className={`grid aspect-square place-items-center rounded-[10px] text-[12px] font-bold tabular-nums transition active:scale-90 cursor-pointer
-                  ${on ? 'bg-emerald-500 text-white' : next?.id === g.id ? 'border-[1.5px] border-dashed border-stone-400 bg-white text-stone-500' : 'border border-stone-200 bg-white text-stone-300'}`}>
-                  {on ? <span className="tick"><Icon d={I.check} w={3} /></span> : fa(i + 1)}</button>; })}
-            </div>
-            <button onClick={() => setOpenId(s.id)} className="mt-3 flex w-full items-start gap-2 rounded-xl bg-stone-50 px-3 py-2.5 text-right cursor-pointer">
-              {n ? <><span className="mt-1 shrink-0 text-amber-500"><Icon d={I.note} className="size-3.5" /></span>
-                <span className="min-w-0 flex-1"><span className="line-clamp-2 text-[13px] leading-6 text-stone-700">{n.text}</span>
-                  <span className="text-[11px] text-stone-400">{ago(n.at)}{s.notes.length > 1 && ` · ${fa(s.notes.length - 1)}+ یادداشت دیگر`}</span></span></>
-                : <span className="text-[12px] text-stone-400">+ افزودن یادداشت</span>}
-            </button>
-          </article>; })}
-        {loaded && !rows.length && <div className="rounded-[20px] border border-stone-200 bg-white px-6 py-16 text-center">
+          const p = progress(s); const st = STATUS[statusOf(s)];
+          return <button key={s.id} onClick={() => setOpenId(s.id)}
+            className="flex w-full items-center gap-3 border-b border-stone-100 px-3.5 py-3 text-right last:border-0 active:bg-stone-50 cursor-pointer">
+            <span className={`size-2 shrink-0 rounded-full ${st.dot}`} title={st.label} />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14px] font-bold">{s.name}</span>
+              <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-stone-500"><Avatar name={s.owner} size="size-4 text-[9px]" /><span className="truncate">{s.owner}</span></span>
+            </span>
+            <span className="flex w-20 shrink-0 flex-col items-end gap-1">
+              <span className="text-[13px] font-black tabular-nums">{fa(p.pct)}٪</span>
+              <Bar pct={p.pct} className="w-full" />
+            </span>
+            <span className="shrink-0 text-stone-300"><Icon d={I.arrow} className="size-4" /></span>
+          </button>; })}
+        {loaded && !rows.length && <div className="px-6 py-16 text-center">
           {stores.length ? <><p className="font-bold">نتیجه‌ای پیدا نشد</p><button onClick={() => { setQ(''); setOwner(''); setStatus(''); }} className={`${btnGhost} mt-4`}>پاک کردن فیلترها</button></>
             : <><p className="text-[17px] font-extrabold">اولین فروشگاه را اضافه کنید</p><p className="mt-2 text-[13px] leading-6 text-stone-500">هر مرحله را با یک لمس پاس کنید.</p></>}
         </div>}
