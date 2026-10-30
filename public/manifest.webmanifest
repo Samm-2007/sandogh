@@ -1,6 +1,6 @@
 {
-  "name": "پیوند — اتصال فروشگاه‌ها به اوانی",
-  "short_name": "پیوند",
+  "name": "اتصال فروشگاه‌ها",
+  "short_name": "فروشگاه‌ها",
   "lang": "fa", "dir": "rtl",
   "start_url": "/", "display": "standalone",
   "background_color": "#f6f6f4", "theme_color": "#0b0d12",
