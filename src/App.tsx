@@ -266,9 +266,7 @@ export default function App() {
     <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[#f6f6f4]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6">
         {/* brand + overall ring */}
-        <a href="/" className="flex items-center gap-2" title="پیوند · اتصال فروشگاه‌ها به اوانی"><Mark className="size-9 transition hover:rotate-[-6deg]" />
-          <div className="hidden leading-none lg:block"><div className="text-[16px] font-black tracking-tight">پیوند</div><div className="mt-1 text-[10px] font-medium text-stone-500">آوان‌تک · اوانی</div></div></a>
-        <span className="mx-0.5 hidden h-6 w-px bg-stone-200 sm:block" />
+        
         <div className="flex items-center gap-2" title={`${fa(count('live'))} از ${fa(stores.length)} فروشگاه متصل شده`}>
           <Ring pct={overall} />
           <div className="hidden leading-tight xl:block"><div className="text-[12px] font-bold">پیشرفت کل</div>
