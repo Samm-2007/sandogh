@@ -405,7 +405,6 @@ export default function App() {
                   ${on ? 'bg-emerald-500 text-white' : next?.id === g.id ? 'border-[1.5px] border-dashed border-stone-400 bg-white text-stone-500' : 'border border-stone-200 bg-white text-stone-300'}`}>
                   {on ? <span className="tick"><Icon d={I.check} w={3} /></span> : fa(i + 1)}</button>; })}
             </div>
-            <div className="mt-2.5 truncate text-[12px] text-stone-500">{next ? <>بعدی: <span className="font-semibold text-stone-800">{next.title}</span></> : <span className="font-semibold text-emerald-600">همه مراحل انجام شد</span>}</div>
             <button onClick={() => setOpenId(s.id)} className="mt-3 flex w-full items-start gap-2 rounded-xl bg-stone-50 px-3 py-2.5 text-right cursor-pointer">
               {n ? <><span className="mt-1 shrink-0 text-amber-500"><Icon d={I.note} className="size-3.5" /></span>
                 <span className="min-w-0 flex-1"><span className="line-clamp-2 text-[13px] leading-6 text-stone-700">{n.text}</span>
