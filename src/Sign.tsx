@@ -5,9 +5,16 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const ROLE: Record<SignRole, string> = { manager: 'مدیر فروشگاه', cashier: 'صندوق‌دار' };
 const dateFa = (t: number) => new Date(t).toLocaleString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-export const agreementText = (store: string, role: SignRole, signer: string) => role === 'manager'
-  ? `اینجانب ${signer}، مدیر فروشگاه «${store}»، تأیید می‌کنم که نرم‌افزار صندوق اوانی و تجهیزات مربوط (PC POS و فیش پرینتر) در فروشگاه نصب و راه‌اندازی شده، آموزش‌های لازم به صندوق‌داران ارائه شده، فروش‌های تستی با موفقیت انجام شده و مشکلات مطرح‌شده برطرف گردیده است. بدین‌وسیله شروع کار رسمی فروشگاه با نرم‌افزار اوانی را تأیید می‌نمایم.`
-  : `اینجانب ${signer}، صندوق‌دار فروشگاه «${store}»، تأیید می‌کنم که آموزش کار با صندوق اوانی شامل ثبت فروش، دریافت وجه از طریق پوز، چاپ فیش و ثبت مرجوعی را دریافت کرده‌ام و توانایی انجام فروش با این نرم‌افزار را دارم.`;
+const CASHIER_ITEMS = ['باز کردن نرم‌افزار و ورود با کد کارمندی و رمز عبور', 'بازگشایی صندوق و ورود به محیط فروش', 'افزودن کالا به سفارش و ثبت پرداخت',
+  'ثبت پرداخت چندگانه و انتخاب مشتری', 'چاپ فاکتور و باز نگه داشتن هم‌زمان تا ۳ فاکتور', 'بازگردانی پرداخت‌های نقدی', 'خروج از نرم‌افزار',
+  'چاپ مجدد فاکتور', 'مشاهده فهرست سفارش‌ها', 'ثبت مرجوعی سفارش', 'اعمال تخفیف روی کالا یا فاکتور'];
+const MANAGER_ITEMS = ['نصب و راه‌اندازی نرم‌افزار صندوق فروش آوانی', 'نصب و تنظیم دستگاه کارت‌خوان (PC POS) و فیش پرینتر', 'ورود اطلاعات کالاها',
+  'آموزش صندوق‌داران و دریافت تأییدیه آموزش از ایشان', 'انجام فروش‌های آزمایشی و اطمینان از صحت عملکرد', 'دریافت بازخورد و پیگیری و رفع کامل مشکلات مطرح‌شده'];
+const fd = (t: number) => new Date(t).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' });
+export const formTitle = (r: SignRole) => r === 'manager' ? 'فرم تأیید نهایی راه‌اندازی صندوق فروش آوانی' : 'فرم تأیید آموزش نرم‌افزار صندوق فروش آوانی';
+export const agreementText = (store: string, role: SignRole, signer: string, code = '…', at = Date.now()) => role === 'manager'
+  ? `اینجانب ${signer} به کد کارمندی ${code}، مدیر فروشگاه «${store}»، تأیید می‌کنم که تا تاریخ ${fd(at)} مراحل زیر به‌طور کامل در فروشگاه انجام شده است:\n${MANAGER_ITEMS.map((x, i) => `${(i + 1).toLocaleString('fa-IR')}. ${x}`).join('\n')}\nمشکلاتی که در دوره راه‌اندازی مطرح شد پیگیری و برطرف شده و در حال حاضر مورد باقی‌مانده‌ای وجود ندارد. بدین‌وسیله آمادگی فروشگاه برای شروع رسمی فروش با نرم‌افزار آوانی را تأیید می‌کنم. مشکلات احتمالی بعدی از طریق پشتیبانی آوان‌تک پیگیری خواهد شد.`
+  : `اینجانب ${signer} به کد کارمندی ${code}، صندوق‌دار فروشگاه «${store}»، تأیید می‌کنم که در تاریخ ${fd(at)} موارد زیر به اینجانب آموزش داده شده و توانایی انجام آن‌ها را دارم:\n${CASHIER_ITEMS.map((x, i) => `${(i + 1).toLocaleString('fa-IR')}. ${x}`).join('\n')}`;
 
 function Pad({ onChange }: { onChange: (data: string) => void }) {
   const ref = useRef<HTMLCanvasElement>(null); const drawing = useRef(false); const dirty = useRef(false);
@@ -35,11 +42,11 @@ export function exportPdf(store: Store, s: Sign) {
 <style>@font-face{font-family:Y;src:url(${location.origin}/fonts/IRANYekanXFaNum-Regular.ttf)}@font-face{font-family:Y;font-weight:700;src:url(${location.origin}/fonts/IRANYekanXFaNum-Bold.ttf)}
 @page{size:A4;margin:18mm}*{box-sizing:border-box}body{font-family:Y,Tahoma,sans-serif;color:#1c1917;margin:0;line-height:2}
 h1{font-size:20px;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1c1917;padding-bottom:10px;margin-bottom:22px}
-.meta{font-size:12px;color:#57534e}.box{border:1px solid #d6d3d1;border-radius:10px;padding:18px 20px;font-size:14px;text-align:justify}
+.meta{font-size:12px;color:#57534e}.box{border:1px solid #d6d3d1;border-radius:10px;padding:18px 20px;font-size:14px;text-align:justify;white-space:pre-line;line-height:2.2}
 table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{border:1px solid #d6d3d1;padding:8px 12px}td:first-child{width:28%;background:#f5f5f4;font-weight:700}
 .sigs{display:flex;gap:20px;margin-top:34px}.sig{flex:1;border:1px solid #d6d3d1;border-radius:10px;padding:12px;text-align:center;font-size:13px}
 .sig img{height:110px;max-width:100%;object-fit:contain;display:block;margin:6px auto}.foot{margin-top:30px;font-size:11px;color:#78716c;text-align:center}</style></head><body>
-<div class="top"><div><h1>تاییدیه ${esc(ROLE[s.role])}</h1><div class="meta">فروشگاه: ${esc(store.name)}</div></div><div class="meta">تاریخ: ${dateFa(s.at)}<br>شناسه: ${s.id}</div></div>
+<div class="top"><div><h1>${formTitle(s.role)}</h1><div class="meta">فروشگاه: ${esc(store.name)}</div></div><div class="meta">تاریخ: ${dateFa(s.at)}<br>شناسه: ${s.id}</div></div>
 <div class="box">${esc(s.text)}</div>
 <table><tr><td>فروشگاه</td><td>${esc(store.name)}</td></tr><tr><td>${esc(ROLE[s.role])}</td><td>${esc(s.signer)}</td></tr>${s.code ? `<tr><td>کد ${s.role === 'manager' ? 'مدیر' : 'صندوق‌دار'}</td><td>${esc(s.code)}</td></tr>` : ''}<tr><td>مسئول راه‌اندازی</td><td>${esc(s.owner)}</td></tr><tr><td>زمان امضا</td><td>${dateFa(s.at)}</td></tr></table>
 <div class="sigs"><div class="sig"><b>امضای ${esc(ROLE[s.role])}</b><img src="${s.sig}"><div>${esc(s.signer)}</div></div>
@@ -54,7 +61,7 @@ table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{bord
 export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { store: Store; dispatch: (o: Op) => void; onClose: () => void; initRole?: SignRole }) {
   const [step, setStep] = useState(0); const [role, setRole] = useState<SignRole>(initRole); const [signer, setSigner] = useState('');
   const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const [owner, setOwner] = useState(store.owner); const [code, setCode] = useState('');
-  const text = agreementText(store.name, role, signer.trim() || '…');
+  const text = agreementText(store.name, role, signer.trim() || '…', code.trim() || '…');
   const finish = () => {
     const s: Sign = { id: uid(), role, signer: signer.trim(), text, sig, owner: owner.trim(), ownerSig, at: Date.now(), code: code.trim() };
     dispatch({ t: 'addSign', storeId: store.id, sign: s }); onClose(); exportPdf(store, s);
@@ -80,7 +87,8 @@ export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { s
       </div>}
 
       {step === 1 && <div className="space-y-4">
-        <div className="max-h-48 overflow-auto rounded-2xl bg-stone-50 p-4 text-[13.5px] leading-8 text-stone-700 text-justify">{text}</div>
+        <div className="text-[14px] font-extrabold">{formTitle(role)}</div>
+        <div className="max-h-72 overflow-auto rounded-2xl bg-stone-50 p-4 whitespace-pre-line text-[13.5px] leading-8 text-stone-700">{text}</div>
         <div className="text-[12px] font-semibold text-stone-500">{signer} عزیز، متن بالا را مطالعه کرده و در کادر زیر امضا کنید:</div>
         <Pad key="a" onChange={setSig} />
         <div className="flex gap-2"><button disabled={!sig} onClick={() => setStep(2)} className={`${btn} flex-1 bg-ink text-white`}>متن را خواندم و امضا می‌کنم</button>
