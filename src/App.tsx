@@ -312,7 +312,6 @@ export default function App() {
         <div className="hidden flex-1 sm:block" /><div className="flex-1 sm:hidden" />
         <span className="relative hidden size-2 sm:flex" title={online ? 'زنده — همگام برای همه' : 'آفلاین'}>
           {online && <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400 opacity-60" />}<span className={`relative size-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-rose-500'}`} /></span>
-        <button onClick={() => setManaging(true)} title="مدیریت مراحل" className="grid size-9 place-items-center rounded-xl border border-stone-200 bg-white text-stone-600 hover:border-stone-300 cursor-pointer"><Icon d={I.sliders} /></button>
         <button onClick={() => setAdding(true)} title="فروشگاه جدید (N)" className="hidden h-9 items-center gap-1.5 rounded-xl bg-ink px-3 text-[13px] font-semibold text-white hover:bg-stone-800 cursor-pointer sm:flex"><Icon d={I.plus} w={2.5} />فروشگاه</button>
       </div>
     </header>
