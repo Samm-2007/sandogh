@@ -51,8 +51,8 @@ table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{bord
   (d.fonts ? d.fonts.ready : Promise.resolve()).then(() => Promise.all([...d.images].map((i) => i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))).then(() => setTimeout(go, 150));
 }
 
-export function SignFlow({ store, dispatch, onClose }: { store: Store; dispatch: (o: Op) => void; onClose: () => void }) {
-  const [step, setStep] = useState(0); const [role, setRole] = useState<SignRole>('manager'); const [signer, setSigner] = useState('');
+export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { store: Store; dispatch: (o: Op) => void; onClose: () => void; initRole?: SignRole }) {
+  const [step, setStep] = useState(0); const [role, setRole] = useState<SignRole>(initRole); const [signer, setSigner] = useState('');
   const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const [owner, setOwner] = useState(store.owner);
   const text = agreementText(store.name, role, signer.trim() || '…');
   const finish = () => {
@@ -95,8 +95,8 @@ export function SignFlow({ store, dispatch, onClose }: { store: Store; dispatch:
     </div></div>;
 }
 
-export function SignList({ store, dispatch }: { store: Store; dispatch: (o: Op) => void }) {
-  const [open, setOpen] = useState(false); const list = store.signs ?? [];
+export function SignList({ store, dispatch, role, onRole }: { store: Store; dispatch: (o: Op) => void; role: SignRole | null; onRole: (r: SignRole | null) => void }) {
+  const [o, setOpen] = useState(false); const open = o || !!role; const list = store.signs ?? [];
   return <section className="border-t border-stone-100 px-5 py-5 sm:px-6">
     <div className="mb-3 flex items-center justify-between"><h3 className="text-[13px] font-bold text-stone-500">تاییدیه‌ها {list.length > 0 && <span className="text-stone-400">· {list.length.toLocaleString('fa-IR')}</span>}</h3>
       <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1 rounded-xl bg-ink px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-stone-800 cursor-pointer">+ افزودن تاییدیه</button></div>
@@ -107,6 +107,6 @@ export function SignList({ store, dispatch }: { store: Store; dispatch: (o: Op) 
       <button onClick={() => confirm('تاییدیه حذف شود؟') && dispatch({ t: 'removeSign', storeId: store.id, id: s.id })} className="px-1 text-[12px] text-stone-300 hover:text-rose-600 cursor-pointer">✕</button>
     </li>)}</ul>
     {!list.length && <p className="py-3 text-center text-[13px] text-stone-400">هنوز تاییدیه‌ای ثبت نشده</p>}
-    {open && <SignFlow store={store} dispatch={dispatch} onClose={() => setOpen(false)} />}
+    {open && <SignFlow store={store} dispatch={dispatch} initRole={role ?? 'manager'} onClose={() => { setOpen(false); onRole(null); }} />}
   </section>;
 }

@@ -32,6 +32,10 @@ export const initialState = (): State => ({
   template: DEFAULTS.map((title, i) => ({ id: 's' + (i + 1), title })),
 });
 
+export const signRoleFor = (g: Stage): SignRole | null =>
+  /مدیر/.test(g.title) && /تأیید|تایید/.test(g.title) ? 'manager' : /تأیید|تایید/.test(g.title) ? 'cashier' : null;
+export const isLocked = (x: Store, g: Stage) => { const r = signRoleFor(g); return !!r && !(x.signs ?? []).some((v) => v.role === r); };
+
 export function apply(s: State, op: Op): State {
   const st = structuredClone(s) as State;
   const find = (id: string) => st.stores.find((x) => x.id === id);
@@ -45,13 +49,14 @@ export function apply(s: State, op: Op): State {
     case 'removeStore': st.stores = st.stores.filter((x) => x.id !== op.id); break;
     case 'toggle': {
       const x = find(op.storeId); if (!x) break;
-      if (x.done[op.stageId]) delete x.done[op.stageId]; else x.done[op.stageId] = op.at;
+      if (x.done[op.stageId]) delete x.done[op.stageId];
+      else { const g = x.stages.find((y) => y.id === op.stageId); if (g && isLocked(x, g)) break; x.done[op.stageId] = op.at; }
       break;
     }
     case 'addNote': find(op.storeId)?.notes.unshift({ id: op.id, text: op.text, at: op.at }); break;
     case 'removeNote': { const x = find(op.storeId); if (x) x.notes = x.notes.filter((n) => n.id !== op.id); break; }
-    case 'addSign': { const x = find(op.storeId); if (x) (x.signs ??= []).unshift(op.sign); break; }
-    case 'removeSign': { const x = find(op.storeId); if (x) x.signs = (x.signs ?? []).filter((g) => g.id !== op.id); break; }
+    case 'addSign': { const x = find(op.storeId); if (x) { (x.signs ??= []).unshift(op.sign); x.stages.forEach((g) => { if (signRoleFor(g) === op.sign.role && !x.done[g.id]) x.done[g.id] = op.sign.at; }); } break; }
+    case 'removeSign': { const x = find(op.storeId); if (x) { x.signs = (x.signs ?? []).filter((g) => g.id !== op.id); x.stages.forEach((g) => { if (isLocked(x, g)) delete x.done[g.id]; }); } break; }
     case 'addStage':
       if (!op.storeId) st.template.push({ id: op.id, title: op.title });
       targets(op.storeId).forEach((x) => x.stages.push({ id: op.id, title: op.title }));

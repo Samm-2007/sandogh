@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SignList } from './Sign.tsx';
-import { apply, initialState, progress, type Op, type State, type Store, type Stage } from '../shared/model.ts';
+import { apply, initialState, progress, isLocked, signRoleFor, type Op, type State, type Store, type Stage } from '../shared/model.ts';
 
 /* ───────── helpers ───────── */
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -60,6 +60,7 @@ const I = {
   pen: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   trash: <path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" />,
   arrow: <path d="M15 6l-6 6 6 6" />,
+  lock: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></>,
   sort: <path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3" />,
 };
 const Icon = ({ d, className = 'size-4', w = 2 }: { d: ReactNode; className?: string; w?: number }) =>
@@ -141,20 +142,21 @@ function StageManager({ stages, storeId, dispatch, hint }: { stages: Stage[]; st
 }
 
 /* ───────── cell ───────── */
-function Cell({ on, at, label, onClick, next }: { on: boolean; at?: number; label: string; onClick: () => void; next?: boolean }) {
+function Cell({ on, at, label, onClick, next, locked }: { on: boolean; at?: number; label: string; onClick: () => void; next?: boolean; locked?: boolean }) {
   return <button onClick={onClick} title={`${label}${on && at ? ' · ' + ago(at) : ''}`}
     className={`group/c relative mx-auto grid size-9 place-items-center rounded-[11px] transition-all duration-150 cursor-pointer active:scale-90
     ${on ? 'bg-emerald-500 text-white shadow-[inset_0_-2px_0_rgb(0_0_0/.12)] hover:bg-emerald-600'
         : next ? 'border-[1.5px] border-dashed border-stone-400 bg-white hover:border-emerald-500 hover:bg-emerald-50'
           : 'border border-stone-200 bg-white hover:border-emerald-400 hover:bg-emerald-50'}`}>
     {on ? <span className="tick"><Icon d={I.check} w={3} /></span>
+      : locked ? <span className="text-amber-500"><Icon d={I.lock} className="size-3.5" /></span>
       : <span className="text-emerald-500 opacity-0 transition group-hover/c:opacity-100"><Icon d={I.check} w={2.5} /></span>}
   </button>;
 }
 
 /* ───────── drawer ───────── */
 function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: string[]; dispatch: (o: Op) => void; onClose: () => void }) {
-  const [note, setNote] = useState(''); const [mode, setMode] = useState<'list' | 'manage'>('list'); const [editing, setEditing] = useState(false);
+  const [note, setNote] = useState(''); const [mode, setMode] = useState<'list' | 'manage'>('list'); const [editing, setEditing] = useState(false); const [signRole, setSignRole] = useState<'manager' | 'cashier' | null>(null);
   const p = progress(store); const st = STATUS[statusOf(store)];
   useEsc(onClose);
   const addNote = () => { if (note.trim()) { dispatch({ t: 'addNote', storeId: store.id, id: uid(), text: note.trim(), at: Date.now() }); setNote(''); } };
@@ -189,17 +191,17 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
               {store.stages.map((g, i) => { const on = !!store.done[g.id]; const last = i === store.stages.length - 1;
                 return <li key={g.id} className="relative">
                   {!last && <span className={`absolute right-[17px] top-9 h-[calc(100%-24px)] w-0.5 rounded-full ${on ? 'bg-emerald-200' : 'bg-stone-100'}`} />}
-                  <button onClick={() => dispatch({ t: 'toggle', storeId: store.id, stageId: g.id, at: Date.now() })}
+                  <button onClick={() => !on && isLocked(store, g) ? setSignRole(signRoleFor(g)) : dispatch({ t: 'toggle', storeId: store.id, stageId: g.id, at: Date.now() })}
                     className="group flex w-full items-center gap-3 rounded-2xl py-1.5 pl-2 text-right transition hover:bg-stone-50 cursor-pointer">
                     <span className={`relative z-10 grid size-9 shrink-0 place-items-center rounded-full border-2 transition ${on ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-stone-200 bg-white text-stone-300 group-hover:border-emerald-400 group-hover:text-emerald-500'}`}>
-                      {on ? <span className="tick"><Icon d={I.check} w={3} /></span> : <span className="text-[12px] font-bold tabular-nums">{fa(i + 1)}</span>}</span>
+                      {on ? <span className="tick"><Icon d={I.check} w={3} /></span> : isLocked(store, g) ? <Icon d={I.lock} /> : <span className="text-[12px] font-bold tabular-nums">{fa(i + 1)}</span>}</span>
                     <span className={`flex-1 text-[14px] ${on ? 'text-stone-400 line-through decoration-stone-300' : 'font-medium text-stone-800'}`}>{g.title}</span>
-                    {on && <span className="text-[11px] text-stone-400">{ago(store.done[g.id])}</span>}
+                    {on ? <span className="text-[11px] text-stone-400">{ago(store.done[g.id])}</span> : isLocked(store, g) && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">نیاز به امضا</span>}
                   </button></li>; })}
             </ol>}
         </section>
 
-        <SignList store={store} dispatch={dispatch} />
+        <SignList store={store} dispatch={dispatch} role={signRole} onRole={setSignRole} />
         <section className="border-t border-stone-100 bg-stone-50/60 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-6">
           <h3 className="mb-3 text-[13px] font-bold text-stone-500">یادداشت‌ها {store.notes.length > 0 && <span className="text-stone-400">· {fa(store.notes.length)}</span>}</h3>
           <div className="rounded-2xl border border-stone-200 bg-white p-1.5 focus-within:border-stone-400 focus-within:ring-4 focus-within:ring-stone-200/60 transition">
@@ -256,7 +258,7 @@ export default function App() {
     [stores, q, owner, status, sort]);
 
   const open = stores.find((s) => s.id === openId);
-  const toggle = (s: Store, id: string) => dispatch({ t: 'toggle', storeId: s.id, stageId: id, at: Date.now() });
+  const toggle = (s: Store, id: string) => { const g = s.stages.find((y) => y.id === id); if (g && !s.done[id] && isLocked(s, g)) { setOpenId(s.id); return; } dispatch({ t: 'toggle', storeId: s.id, stageId: id, at: Date.now() }); };
   const cols = `minmax(260px,1.3fr) repeat(${template.length}, 76px) 72px minmax(220px,1fr)`;
   const filtered = q || owner || status;
 
@@ -351,7 +353,7 @@ export default function App() {
                   </div>
                 </button>
                 {template.map((g) => s.stages.some((x) => x.id === g.id)
-                  ? <div key={g.id} className="py-2"><Cell on={!!s.done[g.id]} at={s.done[g.id]} label={g.title} next={next?.id === g.id} onClick={() => toggle(s, g.id)} /></div>
+                  ? <div key={g.id} className="py-2"><Cell on={!!s.done[g.id]} at={s.done[g.id]} label={g.title + (isLocked(s, g) ? ' · نیاز به امضای الکترونیک' : '')} locked={isLocked(s, g)} next={next?.id === g.id} onClick={() => toggle(s, g.id)} /></div>
                   : <div key={g.id} className="text-center text-stone-200" title="این مرحله برای این فروشگاه حذف شده">—</div>)}
                 <div className="flex flex-wrap justify-center gap-1 px-1">
                   {extra.length ? extra.map((g) => <button key={g.id} onClick={() => toggle(s, g.id)} title={g.title}
