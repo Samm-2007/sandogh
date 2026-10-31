@@ -41,7 +41,7 @@ table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{bord
 .sig img{height:110px;max-width:100%;object-fit:contain;display:block;margin:6px auto}.foot{margin-top:30px;font-size:11px;color:#78716c;text-align:center}</style></head><body>
 <div class="top"><div><h1>تاییدیه ${esc(ROLE[s.role])}</h1><div class="meta">فروشگاه: ${esc(store.name)}</div></div><div class="meta">تاریخ: ${dateFa(s.at)}<br>شناسه: ${s.id}</div></div>
 <div class="box">${esc(s.text)}</div>
-<table><tr><td>فروشگاه</td><td>${esc(store.name)}</td></tr><tr><td>${esc(ROLE[s.role])}</td><td>${esc(s.signer)}</td></tr><tr><td>مسئول راه‌اندازی</td><td>${esc(s.owner)}</td></tr><tr><td>زمان امضا</td><td>${dateFa(s.at)}</td></tr></table>
+<table><tr><td>فروشگاه</td><td>${esc(store.name)}</td></tr><tr><td>${esc(ROLE[s.role])}</td><td>${esc(s.signer)}</td></tr>${s.code ? `<tr><td>کد ${s.role === 'manager' ? 'مدیر' : 'صندوق‌دار'}</td><td>${esc(s.code)}</td></tr>` : ''}<tr><td>مسئول راه‌اندازی</td><td>${esc(s.owner)}</td></tr><tr><td>زمان امضا</td><td>${dateFa(s.at)}</td></tr></table>
 <div class="sigs"><div class="sig"><b>امضای ${esc(ROLE[s.role])}</b><img src="${s.sig}"><div>${esc(s.signer)}</div></div>
 <div class="sig"><b>امضای مسئول راه‌اندازی</b><img src="${s.ownerSig}"><div>${esc(s.owner)}</div></div></div>
 <div class="foot">این سند به‌صورت الکترونیکی امضا شده است.</div></body></html>`;
@@ -53,16 +53,16 @@ table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{bord
 
 export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { store: Store; dispatch: (o: Op) => void; onClose: () => void; initRole?: SignRole }) {
   const [step, setStep] = useState(0); const [role, setRole] = useState<SignRole>(initRole); const [signer, setSigner] = useState('');
-  const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const [owner, setOwner] = useState(store.owner);
+  const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const [owner, setOwner] = useState(store.owner); const [code, setCode] = useState('');
   const text = agreementText(store.name, role, signer.trim() || '…');
   const finish = () => {
-    const s: Sign = { id: uid(), role, signer: signer.trim(), text, sig, owner: owner.trim(), ownerSig, at: Date.now() };
+    const s: Sign = { id: uid(), role, signer: signer.trim(), text, sig, owner: owner.trim(), ownerSig, at: Date.now(), code: code.trim() };
     dispatch({ t: 'addSign', storeId: store.id, sign: s }); onClose(); exportPdf(store, s);
   };
   const steps = ['اطلاعات', `امضای ${ROLE[role]}`, 'امضای مسئول'];
   const btn = 'inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-[13px] font-semibold transition cursor-pointer disabled:opacity-30';
-  return <div className="fade fixed inset-0 z-[60] grid items-end bg-stone-900/30 backdrop-blur-[2px] sm:place-items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <div className="rise w-full max-h-[94dvh] overflow-auto rounded-t-[24px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:rounded-[22px] sm:p-6 shadow-2xl">
+  return <div className="fade fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-stone-900/30 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="rise w-full rounded-[24px] mx-2 bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:rounded-[22px] sm:p-6 shadow-2xl">
       <div className="mb-4 flex items-center justify-between"><h2 className="text-[17px] font-extrabold">تاییدیه · {store.name}</h2>
         <button onClick={onClose} className="rounded-lg px-2 py-1 text-stone-400 hover:bg-stone-100 cursor-pointer">✕</button></div>
       <div className="mb-5 flex gap-1.5">{steps.map((t, i) => <div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-stone-200'}`} /><div className={`mt-1 text-[11px] ${i === step ? 'font-bold text-stone-800' : 'text-stone-400'}`}>{t}</div></div>)}</div>
@@ -72,9 +72,11 @@ export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { s
           <button key={r} onClick={() => setRole(r)} className={`rounded-xl border px-3 py-2.5 text-[13px] font-semibold cursor-pointer ${role === r ? 'border-ink bg-ink text-white' : 'border-stone-200 hover:border-stone-400'}`}>{ROLE[r]}</button>)}</div>
         <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">نام و نام خانوادگی {ROLE[role]}</span>
           <input autoFocus value={signer} onChange={(e) => setSigner(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-[14px] outline-none focus:border-stone-400" /></label>
+        <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">کد {role === 'manager' ? 'مدیر' : 'صندوق‌دار'}</span>
+          <input inputMode="numeric" dir="ltr" value={code} onChange={(e) => setCode(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-center text-[14px] tracking-widest outline-none focus:border-stone-400" /></label>
         <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">مسئول راه‌اندازی</span>
           <input value={owner} onChange={(e) => setOwner(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-[14px] outline-none focus:border-stone-400" /></label>
-        <button disabled={!signer.trim() || !owner.trim()} onClick={() => setStep(1)} className={`${btn} w-full bg-ink text-white`}>ادامه</button>
+        <button disabled={!signer.trim() || !owner.trim() || !code.trim()} onClick={() => setStep(1)} className={`${btn} w-full bg-ink text-white`}>ادامه</button>
       </div>}
 
       {step === 1 && <div className="space-y-4">
@@ -102,7 +104,7 @@ export function SignList({ store, dispatch, role, onRole }: { store: Store; disp
       <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1 rounded-xl bg-ink px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-stone-800 cursor-pointer">+ افزودن تاییدیه</button></div>
     <ul className="space-y-2">{list.map((s) => <li key={s.id} className="group flex items-center gap-3 rounded-2xl border border-stone-200/70 bg-white p-2.5">
       <img src={s.sig} className="h-11 w-20 shrink-0 rounded-lg bg-stone-50 object-contain" />
-      <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-semibold">{s.signer}</div><div className="text-[11px] text-stone-400">{ROLE[s.role]} · {dateFa(s.at)}</div></div>
+      <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-semibold">{s.signer}</div><div className="text-[11px] text-stone-400">{ROLE[s.role]}{s.code && ` · کد ${s.code}`} · {dateFa(s.at)}</div></div>
       <button onClick={() => exportPdf(store, s)} className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-[12px] font-semibold hover:bg-stone-50 cursor-pointer">PDF</button>
       <button onClick={() => confirm('تاییدیه حذف شود؟') && dispatch({ t: 'removeSign', storeId: store.id, id: s.id })} className="px-1 text-[12px] text-stone-300 hover:text-rose-600 cursor-pointer">✕</button>
     </li>)}</ul>

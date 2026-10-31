@@ -83,8 +83,8 @@ function useEsc(fn: () => void) {
 }
 function Dialog({ title, sub, children, onClose }: { title: string; sub?: string; children: ReactNode; onClose: () => void }) {
   useEsc(onClose);
-  return <div className="fade fixed inset-0 z-50 grid items-end bg-stone-900/25 sm:place-items-center sm:p-4 backdrop-blur-[2px]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <div className="rise w-full max-h-[92dvh] overflow-auto rounded-t-[24px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-md sm:rounded-[22px] sm:p-6 shadow-[0_30px_80px_-20px_rgb(0_0_0/.35)]">
+  return <div className="fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-900/25 px-2 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="rise w-full rounded-[24px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-md sm:rounded-[22px] sm:p-6 shadow-[0_30px_80px_-20px_rgb(0_0_0/.35)]">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div><h2 className="text-[17px] font-extrabold tracking-tight">{title}</h2>{sub && <p className="mt-1 text-[13px] text-stone-500">{sub}</p>}</div>
         <button onClick={onClose} className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer"><Icon d={I.x} /></button>

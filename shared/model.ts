@@ -1,7 +1,7 @@
 export interface Stage { id: string; title: string }
 export interface Note { id: string; text: string; at: number }
 export type SignRole = 'manager' | 'cashier';
-export interface Sign { id: string; role: SignRole; signer: string; text: string; sig: string; owner: string; ownerSig: string; at: number }
+export interface Sign { id: string; role: SignRole; signer: string; text: string; sig: string; owner: string; ownerSig: string; at: number; code?: string }
 export interface Store {
   id: string; name: string; owner: string; createdAt: number;
   stages: Stage[]; done: Record<string, number>; notes: Note[]; signs?: Sign[];
