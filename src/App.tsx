@@ -13,7 +13,12 @@ const ago = (t: number) => {
   return new Date(t).toLocaleDateString('fa-IR', { month: 'long', day: 'numeric' });
 };
 const HUES = [12, 32, 150, 190, 220, 262, 300, 340];
-const hue = (s: string) => HUES[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % HUES.length];
+const PALETTE = [220, 32, 150, 340, 262, 190, 12, 300, 95, 245];
+let ownerIdx: Record<string, number> = {};
+const setOwners = (list: string[]) => { ownerIdx = Object.fromEntries(list.map((o, i) => [o, i])); };
+const hue = (s: string) => { const i = ownerIdx[s.trim()]; return i !== undefined ? PALETTE[i % PALETTE.length] : HUES[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % HUES.length]; };
+const OwnerBadge = ({ name }: { name: string }) => <span className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+  style={{ background: `oklch(0.95 0.04 ${hue(name)})`, color: `oklch(0.45 0.14 ${hue(name)})` }}>{name}</span>;
 const lastActivity = (s: Store) => Math.max(s.createdAt, ...Object.values(s.done), ...s.notes.map((n) => n.at));
 
 type Status = 'live' | 'doing' | 'idle';
@@ -238,6 +243,7 @@ export default function App() {
 
   const { stores, template } = state;
   const owners = useMemo(() => [...new Set(stores.map((s) => s.owner))].sort((a, b) => a.localeCompare(b, 'fa')), [stores]);
+  setOwners(owners);
   const count = (st: Status) => stores.filter((s) => statusOf(s) === st).length;
   const overall = stores.length ? Math.round(stores.reduce((a, s) => a + progress(s).pct, 0) / stores.length) : 0;
 
@@ -340,7 +346,7 @@ export default function App() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2"><span className="truncate text-[14px] font-bold group-hover:underline underline-offset-4 decoration-stone-300">{s.name}</span>
                       <span className={`size-1.5 shrink-0 rounded-full ${st.dot}`} title={st.label} /></div>
-                    <div className="mt-1 flex items-center gap-2 text-[12px] text-stone-500"><span className="truncate">{s.owner}</span><span className="text-stone-300">·</span>
+                    <div className="mt-1 flex items-center gap-2 text-[12px] text-stone-500"><OwnerBadge name={s.owner} /><span className="text-stone-300">·</span>
                       <span className="shrink-0 tabular-nums font-semibold text-stone-700">{fa(p.done)}/{fa(p.total)}</span><Bar pct={p.pct} className="w-14 shrink-0" /></div>
                   </div>
                 </button>
@@ -385,7 +391,7 @@ export default function App() {
             <span className={`size-2 shrink-0 rounded-full ${st.dot}`} title={st.label} />
             <span className="flex min-w-0 flex-1 items-baseline gap-2">
               <span className="truncate text-[14px] font-bold">{s.name}</span>
-              <span className="shrink-0 truncate text-[12px] text-stone-400">{s.owner}</span>
+              <OwnerBadge name={s.owner} />
             </span>
             <Bar pct={p.pct} className="w-16 shrink-0" />
             <span className="shrink-0 text-stone-300"><Icon d={I.arrow} className="size-4" /></span>
