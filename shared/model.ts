@@ -1,8 +1,10 @@
 export interface Stage { id: string; title: string }
 export interface Note { id: string; text: string; at: number }
+export type SignRole = 'manager' | 'cashier';
+export interface Sign { id: string; role: SignRole; signer: string; text: string; sig: string; owner: string; ownerSig: string; at: number }
 export interface Store {
   id: string; name: string; owner: string; createdAt: number;
-  stages: Stage[]; done: Record<string, number>; notes: Note[];
+  stages: Stage[]; done: Record<string, number>; notes: Note[]; signs?: Sign[];
 }
 export interface State { version: number; template: Stage[]; stores: Store[] }
 
@@ -13,6 +15,8 @@ export type Op =
   | { t: 'toggle'; storeId: string; stageId: string; at: number }
   | { t: 'addNote'; storeId: string; id: string; text: string; at: number }
   | { t: 'removeNote'; storeId: string; id: string }
+  | { t: 'addSign'; storeId: string; sign: Sign }
+  | { t: 'removeSign'; storeId: string; id: string }
   | { t: 'addStage'; storeId: string | null; id: string; title: string }
   | { t: 'removeStage'; storeId: string | null; stageId: string }
   | { t: 'renameStage'; storeId: string | null; stageId: string; title: string };
@@ -46,6 +50,8 @@ export function apply(s: State, op: Op): State {
     }
     case 'addNote': find(op.storeId)?.notes.unshift({ id: op.id, text: op.text, at: op.at }); break;
     case 'removeNote': { const x = find(op.storeId); if (x) x.notes = x.notes.filter((n) => n.id !== op.id); break; }
+    case 'addSign': { const x = find(op.storeId); if (x) (x.signs ??= []).unshift(op.sign); break; }
+    case 'removeSign': { const x = find(op.storeId); if (x) x.signs = (x.signs ?? []).filter((g) => g.id !== op.id); break; }
     case 'addStage':
       if (!op.storeId) st.template.push({ id: op.id, title: op.title });
       targets(op.storeId).forEach((x) => x.stages.push({ id: op.id, title: op.title }));

@@ -22,7 +22,7 @@ http.createServer((req, res) => {
   if (url.pathname === '/api/state' && req.method === 'GET') return json(res, 200, state);
   if (url.pathname === '/api/op' && req.method === 'POST') {
     let body = '';
-    req.on('data', (c) => { body += c; if (body.length > 1e6) req.destroy(); });
+    req.on('data', (c) => { body += c; if (body.length > 4e6) req.destroy(); });
     req.on('end', () => {
       try { state = apply(state, JSON.parse(body) as Op); save(); json(res, 200, state); }
       catch (e) { json(res, 400, { error: String(e) }); }

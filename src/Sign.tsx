@@ -1,0 +1,112 @@
+import { useEffect, useRef, useState } from 'react';
+import type { Op, Sign, SignRole, Store } from '../shared/model.ts';
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+const ROLE: Record<SignRole, string> = { manager: 'مدیر فروشگاه', cashier: 'صندوق‌دار' };
+const dateFa = (t: number) => new Date(t).toLocaleString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+export const agreementText = (store: string, role: SignRole, signer: string) => role === 'manager'
+  ? `اینجانب ${signer}، مدیر فروشگاه «${store}»، تأیید می‌کنم که نرم‌افزار صندوق اوانی و تجهیزات مربوط (PC POS و فیش پرینتر) در فروشگاه نصب و راه‌اندازی شده، آموزش‌های لازم به صندوق‌داران ارائه شده، فروش‌های تستی با موفقیت انجام شده و مشکلات مطرح‌شده برطرف گردیده است. بدین‌وسیله شروع کار رسمی فروشگاه با نرم‌افزار اوانی را تأیید می‌نمایم.`
+  : `اینجانب ${signer}، صندوق‌دار فروشگاه «${store}»، تأیید می‌کنم که آموزش کار با صندوق اوانی شامل ثبت فروش، دریافت وجه از طریق پوز، چاپ فیش و ثبت مرجوعی را دریافت کرده‌ام و توانایی انجام فروش با این نرم‌افزار را دارم.`;
+
+function Pad({ onChange }: { onChange: (data: string) => void }) {
+  const ref = useRef<HTMLCanvasElement>(null); const drawing = useRef(false); const dirty = useRef(false);
+  useEffect(() => {
+    const c = ref.current!; const r = c.getBoundingClientRect(); const d = devicePixelRatio || 1;
+    c.width = r.width * d; c.height = r.height * d;
+    const g = c.getContext('2d')!; g.scale(d, d); g.lineWidth = 2.4; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#0b1f4d';
+  }, []);
+  const pt = (e: React.PointerEvent) => { const r = ref.current!.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const down = (e: React.PointerEvent) => { e.currentTarget.setPointerCapture(e.pointerId); drawing.current = true; const g = ref.current!.getContext('2d')!; const [x, y] = pt(e); g.beginPath(); g.moveTo(x, y); g.lineTo(x + .1, y + .1); g.stroke(); };
+  const move = (e: React.PointerEvent) => { if (!drawing.current) return; const g = ref.current!.getContext('2d')!; const [x, y] = pt(e); g.lineTo(x, y); g.stroke(); dirty.current = true; };
+  const up = () => { if (!drawing.current) return; drawing.current = false; dirty.current = true; onChange(ref.current!.toDataURL('image/png')); };
+  const clear = () => { const c = ref.current!; c.getContext('2d')!.clearRect(0, 0, c.width, c.height); dirty.current = false; onChange(''); };
+  return <div className="relative">
+    <canvas ref={ref} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
+      className="block h-44 w-full touch-none rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 cursor-crosshair" />
+    <span className="pointer-events-none absolute bottom-3 right-4 left-16 border-b border-stone-300" />
+    <button type="button" onClick={clear} className="absolute top-2 left-2 rounded-lg bg-white/90 px-2.5 py-1 text-[12px] font-semibold text-stone-500 shadow-sm hover:text-rose-600 cursor-pointer">پاک کردن</button>
+  </div>;
+}
+
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+export function exportPdf(store: Store, s: Sign) {
+  const html = `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>تاییدیه ${esc(store.name)} - ${esc(s.signer)}</title>
+<style>@font-face{font-family:Y;src:url(${location.origin}/fonts/IRANYekanXFaNum-Regular.ttf)}@font-face{font-family:Y;font-weight:700;src:url(${location.origin}/fonts/IRANYekanXFaNum-Bold.ttf)}
+@page{size:A4;margin:18mm}*{box-sizing:border-box}body{font-family:Y,Tahoma,sans-serif;color:#1c1917;margin:0;line-height:2}
+h1{font-size:20px;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1c1917;padding-bottom:10px;margin-bottom:22px}
+.meta{font-size:12px;color:#57534e}.box{border:1px solid #d6d3d1;border-radius:10px;padding:18px 20px;font-size:14px;text-align:justify}
+table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{border:1px solid #d6d3d1;padding:8px 12px}td:first-child{width:28%;background:#f5f5f4;font-weight:700}
+.sigs{display:flex;gap:20px;margin-top:34px}.sig{flex:1;border:1px solid #d6d3d1;border-radius:10px;padding:12px;text-align:center;font-size:13px}
+.sig img{height:110px;max-width:100%;object-fit:contain;display:block;margin:6px auto}.foot{margin-top:30px;font-size:11px;color:#78716c;text-align:center}</style></head><body>
+<div class="top"><div><h1>تاییدیه ${esc(ROLE[s.role])}</h1><div class="meta">فروشگاه: ${esc(store.name)}</div></div><div class="meta">تاریخ: ${dateFa(s.at)}<br>شناسه: ${s.id}</div></div>
+<div class="box">${esc(s.text)}</div>
+<table><tr><td>فروشگاه</td><td>${esc(store.name)}</td></tr><tr><td>${esc(ROLE[s.role])}</td><td>${esc(s.signer)}</td></tr><tr><td>مسئول راه‌اندازی</td><td>${esc(s.owner)}</td></tr><tr><td>زمان امضا</td><td>${dateFa(s.at)}</td></tr></table>
+<div class="sigs"><div class="sig"><b>امضای ${esc(ROLE[s.role])}</b><img src="${s.sig}"><div>${esc(s.signer)}</div></div>
+<div class="sig"><b>امضای مسئول راه‌اندازی</b><img src="${s.ownerSig}"><div>${esc(s.owner)}</div></div></div>
+<div class="foot">این سند به‌صورت الکترونیکی امضا شده است.</div></body></html>`;
+  const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:-9999px';
+  document.body.appendChild(f); const d = f.contentDocument!; d.open(); d.write(html); d.close();
+  const go = () => { f.contentWindow!.focus(); f.contentWindow!.print(); setTimeout(() => f.remove(), 60000); };
+  (d.fonts ? d.fonts.ready : Promise.resolve()).then(() => Promise.all([...d.images].map((i) => i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))).then(() => setTimeout(go, 150));
+}
+
+export function SignFlow({ store, dispatch, onClose }: { store: Store; dispatch: (o: Op) => void; onClose: () => void }) {
+  const [step, setStep] = useState(0); const [role, setRole] = useState<SignRole>('manager'); const [signer, setSigner] = useState('');
+  const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const [owner, setOwner] = useState(store.owner);
+  const text = agreementText(store.name, role, signer.trim() || '…');
+  const finish = () => {
+    const s: Sign = { id: uid(), role, signer: signer.trim(), text, sig, owner: owner.trim(), ownerSig, at: Date.now() };
+    dispatch({ t: 'addSign', storeId: store.id, sign: s }); onClose(); exportPdf(store, s);
+  };
+  const steps = ['اطلاعات', `امضای ${ROLE[role]}`, 'امضای مسئول'];
+  const btn = 'inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-[13px] font-semibold transition cursor-pointer disabled:opacity-30';
+  return <div className="fade fixed inset-0 z-[60] grid items-end bg-stone-900/30 backdrop-blur-[2px] sm:place-items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="rise w-full max-h-[94dvh] overflow-auto rounded-t-[24px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:rounded-[22px] sm:p-6 shadow-2xl">
+      <div className="mb-4 flex items-center justify-between"><h2 className="text-[17px] font-extrabold">تاییدیه · {store.name}</h2>
+        <button onClick={onClose} className="rounded-lg px-2 py-1 text-stone-400 hover:bg-stone-100 cursor-pointer">✕</button></div>
+      <div className="mb-5 flex gap-1.5">{steps.map((t, i) => <div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-stone-200'}`} /><div className={`mt-1 text-[11px] ${i === step ? 'font-bold text-stone-800' : 'text-stone-400'}`}>{t}</div></div>)}</div>
+
+      {step === 0 && <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">{(['manager', 'cashier'] as SignRole[]).map((r) =>
+          <button key={r} onClick={() => setRole(r)} className={`rounded-xl border px-3 py-2.5 text-[13px] font-semibold cursor-pointer ${role === r ? 'border-ink bg-ink text-white' : 'border-stone-200 hover:border-stone-400'}`}>{ROLE[r]}</button>)}</div>
+        <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">نام و نام خانوادگی {ROLE[role]}</span>
+          <input autoFocus value={signer} onChange={(e) => setSigner(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-[14px] outline-none focus:border-stone-400" /></label>
+        <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">مسئول راه‌اندازی</span>
+          <input value={owner} onChange={(e) => setOwner(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-[14px] outline-none focus:border-stone-400" /></label>
+        <button disabled={!signer.trim() || !owner.trim()} onClick={() => setStep(1)} className={`${btn} w-full bg-ink text-white`}>ادامه</button>
+      </div>}
+
+      {step === 1 && <div className="space-y-4">
+        <div className="max-h-48 overflow-auto rounded-2xl bg-stone-50 p-4 text-[13.5px] leading-8 text-stone-700 text-justify">{text}</div>
+        <div className="text-[12px] font-semibold text-stone-500">{signer} عزیز، متن بالا را مطالعه کرده و در کادر زیر امضا کنید:</div>
+        <Pad key="a" onChange={setSig} />
+        <div className="flex gap-2"><button disabled={!sig} onClick={() => setStep(2)} className={`${btn} flex-1 bg-ink text-white`}>متن را خواندم و امضا می‌کنم</button>
+          <button onClick={() => { setSig(''); setStep(0); }} className={`${btn} border border-stone-200`}>قبلی</button></div>
+      </div>}
+
+      {step === 2 && <div className="space-y-4">
+        <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 p-3 text-[13px] text-emerald-800"><img src={sig} className="h-12 w-24 rounded-lg bg-white object-contain" />امضای {signer} ثبت شد</div>
+        <div className="text-[12px] font-semibold text-stone-500">امضای مسئول راه‌اندازی — {owner}</div>
+        <Pad key="b" onChange={setOwnerSig} />
+        <div className="flex gap-2"><button disabled={!ownerSig} onClick={finish} className={`${btn} flex-1 bg-emerald-600 text-white hover:bg-emerald-700`}>ثبت و دریافت PDF</button>
+          <button onClick={() => { setOwnerSig(''); setStep(1); setSig(''); }} className={`${btn} border border-stone-200`}>قبلی</button></div>
+      </div>}
+    </div></div>;
+}
+
+export function SignList({ store, dispatch }: { store: Store; dispatch: (o: Op) => void }) {
+  const [open, setOpen] = useState(false); const list = store.signs ?? [];
+  return <section className="border-t border-stone-100 px-5 py-5 sm:px-6">
+    <div className="mb-3 flex items-center justify-between"><h3 className="text-[13px] font-bold text-stone-500">تاییدیه‌ها {list.length > 0 && <span className="text-stone-400">· {list.length.toLocaleString('fa-IR')}</span>}</h3>
+      <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1 rounded-xl bg-ink px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-stone-800 cursor-pointer">+ افزودن تاییدیه</button></div>
+    <ul className="space-y-2">{list.map((s) => <li key={s.id} className="group flex items-center gap-3 rounded-2xl border border-stone-200/70 bg-white p-2.5">
+      <img src={s.sig} className="h-11 w-20 shrink-0 rounded-lg bg-stone-50 object-contain" />
+      <div className="min-w-0 flex-1"><div className="truncate text-[14px] font-semibold">{s.signer}</div><div className="text-[11px] text-stone-400">{ROLE[s.role]} · {dateFa(s.at)}</div></div>
+      <button onClick={() => exportPdf(store, s)} className="rounded-lg border border-stone-200 px-2.5 py-1.5 text-[12px] font-semibold hover:bg-stone-50 cursor-pointer">PDF</button>
+      <button onClick={() => confirm('تاییدیه حذف شود؟') && dispatch({ t: 'removeSign', storeId: store.id, id: s.id })} className="px-1 text-[12px] text-stone-300 hover:text-rose-600 cursor-pointer">✕</button>
+    </li>)}</ul>
+    {!list.length && <p className="py-3 text-center text-[13px] text-stone-400">هنوز تاییدیه‌ای ثبت نشده</p>}
+    {open && <SignFlow store={store} dispatch={dispatch} onClose={() => setOpen(false)} />}
+  </section>;
+}

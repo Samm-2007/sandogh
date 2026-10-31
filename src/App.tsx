@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { SignList } from './Sign.tsx';
 import { apply, initialState, progress, type Op, type State, type Store, type Stage } from '../shared/model.ts';
 
 /* ───────── helpers ───────── */
@@ -193,6 +194,7 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
             </ol>}
         </section>
 
+        <SignList store={store} dispatch={dispatch} />
         <section className="border-t border-stone-100 bg-stone-50/60 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-6">
           <h3 className="mb-3 text-[13px] font-bold text-stone-500">یادداشت‌ها {store.notes.length > 0 && <span className="text-stone-400">· {fa(store.notes.length)}</span>}</h3>
           <div className="rounded-2xl border border-stone-200 bg-white p-1.5 focus-within:border-stone-400 focus-within:ring-4 focus-within:ring-stone-200/60 transition">
