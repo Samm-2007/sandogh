@@ -83,7 +83,7 @@ function useEsc(fn: () => void) {
 }
 function Dialog({ title, sub, children, onClose }: { title: string; sub?: string; children: ReactNode; onClose: () => void }) {
   useEsc(onClose);
-  return <div className="fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-stone-900/25 px-2 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+  return <div className="fade vv z-50 flex items-start justify-center overflow-y-auto overscroll-contain pb-3 bg-stone-900/25 px-2 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <div className="rise w-full rounded-[24px] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:max-w-md sm:rounded-[22px] sm:p-6 shadow-[0_30px_80px_-20px_rgb(0_0_0/.35)]">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div><h2 className="text-[17px] font-extrabold tracking-tight">{title}</h2>{sub && <p className="mt-1 text-[13px] text-stone-500">{sub}</p>}</div>
@@ -160,7 +160,7 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
   const p = progress(store); const st = STATUS[statusOf(store)];
   useEsc(onClose);
   const addNote = () => { if (note.trim()) { dispatch({ t: 'addNote', storeId: store.id, id: uid(), text: note.trim(), at: Date.now() }); setNote(''); } };
-  return <div className="fade fixed inset-0 z-40 bg-stone-900/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+  return <div className="fade vv z-40 bg-stone-900/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <aside className="drawer absolute inset-0 flex w-full flex-col overflow-hidden bg-white sm:inset-y-2 sm:left-2 sm:right-auto sm:w-[min(560px,calc(100%-16px))] sm:rounded-[22px] bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/.4)]">
       <header className="border-b border-stone-100 px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6">
         <div className="mb-4 flex items-center justify-between">

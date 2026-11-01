@@ -68,7 +68,7 @@ export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { s
   };
   const steps = ['اطلاعات', `امضای ${ROLE[role]}`, 'امضای مسئول'];
   const btn = 'inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-[13px] font-semibold transition cursor-pointer disabled:opacity-30';
-  return <div className="fade fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-stone-900/30 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+  return <div className="fade vv z-[60] flex items-start justify-center overflow-y-auto overscroll-contain pb-3 bg-stone-900/30 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <div className="rise w-full rounded-[24px] mx-2 bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:rounded-[22px] sm:p-6 shadow-2xl">
       <div className="mb-4 flex items-center justify-between"><h2 className="text-[17px] font-extrabold">تاییدیه · {store.name}</h2>
         <button onClick={onClose} className="rounded-lg px-2 py-1 text-stone-400 hover:bg-stone-100 cursor-pointer">✕</button></div>

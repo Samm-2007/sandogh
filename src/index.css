@@ -27,3 +27,6 @@ body { background: #f6f6f4; }
 ::-webkit-scrollbar-thumb { background: #d4d4d0; border-radius: 99px; border: 3px solid transparent; background-clip: content-box }
 @media (max-width: 640px) { input, textarea, select { font-size: 16px !important } }
 button { -webkit-tap-highlight-color: transparent }
+
+.vv { position: fixed; left: 0; right: 0; top: var(--vt, 0px); height: var(--vh, 100dvh); }
+html:has(.vv), body:has(.vv) { overflow: hidden; overscroll-behavior: none; }
