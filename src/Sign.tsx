@@ -30,7 +30,7 @@ function Pad({ onChange }: { onChange: (data: string) => void }) {
   const clear = () => { const c = ref.current!; c.getContext('2d')!.clearRect(0, 0, c.width, c.height); dirty.current = false; onChange(''); };
   return <div className="relative">
     <canvas ref={ref} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
-      className="block h-44 w-full touch-none rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 cursor-crosshair" />
+      className="block h-56 w-full touch-none rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 cursor-crosshair" />
     <span className="pointer-events-none absolute bottom-3 right-4 left-16 border-b border-stone-300" />
     <button type="button" onClick={clear} className="absolute top-2 left-2 rounded-lg bg-white/90 px-2.5 py-1 text-[12px] font-semibold text-stone-500 shadow-sm hover:text-rose-600 cursor-pointer">پاک کردن</button>
   </div>;
@@ -60,48 +60,41 @@ table{width:100%;margin-top:22px;border-collapse:collapse;font-size:13px}td{bord
 
 export function SignFlow({ store, dispatch, onClose, initRole = 'manager' }: { store: Store; dispatch: (o: Op) => void; onClose: () => void; initRole?: SignRole }) {
   const [step, setStep] = useState(0); const [role, setRole] = useState<SignRole>(initRole); const [signer, setSigner] = useState('');
-  const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const [owner, setOwner] = useState(store.owner); const [code, setCode] = useState('');
+  const [sig, setSig] = useState(''); const [ownerSig, setOwnerSig] = useState(''); const owner = store.owner; const [code, setCode] = useState('');
   const text = agreementText(store.name, role, signer.trim() || '…', code.trim() || '…');
   const finish = () => {
-    const s: Sign = { id: uid(), role, signer: signer.trim(), text, sig, owner: owner.trim(), ownerSig, at: Date.now(), code: code.trim() };
+    const s: Sign = { id: uid(), role, signer: signer.trim(), text, sig, owner, ownerSig, at: Date.now(), code: code.trim() };
     dispatch({ t: 'addSign', storeId: store.id, sign: s }); onClose(); exportPdf(store, s);
   };
-  const steps = ['اطلاعات', `امضای ${ROLE[role]}`, 'امضای مسئول'];
-  const btn = 'inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-[13px] font-semibold transition cursor-pointer disabled:opacity-30';
-  return <div className="fade vv z-[60] flex items-start justify-center overflow-y-auto overscroll-contain pb-3 bg-stone-900/30 pt-[max(.75rem,env(safe-area-inset-top))] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <div className="rise w-full rounded-[24px] mx-2 bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-w-lg sm:rounded-[22px] sm:p-6 shadow-2xl">
-      <div className="mb-4 flex items-center justify-between"><h2 className="text-[17px] font-extrabold">تاییدیه · {store.name}</h2>
-        <button onClick={onClose} className="rounded-lg px-2 py-1 text-stone-400 hover:bg-stone-100 cursor-pointer">✕</button></div>
-      <div className="mb-5 flex gap-1.5">{steps.map((t, i) => <div key={i} className="flex-1"><div className={`h-1 rounded-full ${i <= step ? 'bg-ink' : 'bg-stone-200'}`} /><div className={`mt-1 text-[11px] ${i === step ? 'font-bold text-stone-800' : 'text-stone-400'}`}>{t}</div></div>)}</div>
-
-      {step === 0 && <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">{(['manager', 'cashier'] as SignRole[]).map((r) =>
-          <button key={r} onClick={() => setRole(r)} className={`rounded-xl border px-3 py-2.5 text-[13px] font-semibold cursor-pointer ${role === r ? 'border-ink bg-ink text-white' : 'border-stone-200 hover:border-stone-400'}`}>{ROLE[r]}</button>)}</div>
-        <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">نام و نام خانوادگی {ROLE[role]}</span>
-          <input autoFocus value={signer} onChange={(e) => setSigner(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-[14px] outline-none focus:border-stone-400" /></label>
-        <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">کد {role === 'manager' ? 'مدیر' : 'صندوق‌دار'}</span>
-          <input inputMode="numeric" dir="ltr" value={code} onChange={(e) => setCode(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-center text-[14px] tracking-widest outline-none focus:border-stone-400" /></label>
-        <label className="block"><span className="mb-1.5 block text-[12px] font-semibold text-stone-500">مسئول راه‌اندازی</span>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} className="w-full rounded-xl border border-stone-200 px-3.5 py-2.5 text-[14px] outline-none focus:border-stone-400" /></label>
-        <button disabled={!signer.trim() || !owner.trim() || !code.trim()} onClick={() => setStep(1)} className={`${btn} w-full bg-ink text-white`}>ادامه</button>
-      </div>}
-
-      {step === 1 && <div className="space-y-4">
-        <div className="text-[14px] font-extrabold">{formTitle(role)}</div>
-        <div className="max-h-72 overflow-auto rounded-2xl bg-stone-50 p-4 whitespace-pre-line text-[13.5px] leading-8 text-stone-700">{text}</div>
-        <div className="text-[12px] font-semibold text-stone-500">{signer} عزیز، متن بالا را مطالعه کرده و در کادر زیر امضا کنید:</div>
-        <Pad key="a" onChange={setSig} />
-        <div className="flex gap-2"><button disabled={!sig} onClick={() => setStep(2)} className={`${btn} flex-1 bg-ink text-white`}>متن را خواندم و امضا می‌کنم</button>
-          <button onClick={() => { setSig(''); setStep(0); }} className={`${btn} border border-stone-200`}>قبلی</button></div>
-      </div>}
-
-      {step === 2 && <div className="space-y-4">
-        <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 p-3 text-[13px] text-emerald-800"><img src={sig} className="h-12 w-24 rounded-lg bg-white object-contain" />امضای {signer} ثبت شد</div>
-        <div className="text-[12px] font-semibold text-stone-500">امضای مسئول راه‌اندازی — {owner}</div>
-        <Pad key="b" onChange={setOwnerSig} />
-        <div className="flex gap-2"><button disabled={!ownerSig} onClick={finish} className={`${btn} flex-1 bg-emerald-600 text-white hover:bg-emerald-700`}>ثبت و دریافت PDF</button>
-          <button onClick={() => { setOwnerSig(''); setStep(1); setSig(''); }} className={`${btn} border border-stone-200`}>قبلی</button></div>
-      </div>}
+  const inp = 'min-w-0 rounded-xl border border-stone-200 px-3 py-2.5 text-[14px] outline-none focus:border-stone-400';
+  const main = 'w-full rounded-xl bg-ink py-3 text-[14px] font-bold text-white transition disabled:opacity-30 cursor-pointer';
+  return <div className="fade vv z-[60] flex bg-stone-900/30 sm:items-center sm:justify-center sm:p-4">
+    <div className="flex h-full w-full flex-col bg-white sm:h-auto sm:max-h-[92vh] sm:max-w-lg sm:rounded-[22px] sm:shadow-2xl">
+      <header className="flex items-center gap-2 border-b border-stone-100 px-3 py-2 pt-[max(.5rem,env(safe-area-inset-top))]">
+        <button onClick={onClose} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 cursor-pointer">✕</button>
+        <h2 className="min-w-0 flex-1 truncate text-[15px] font-extrabold">تأیید {role === 'manager' ? 'نهایی مدیر' : 'آموزش صندوق‌دار'} <span className="font-medium text-stone-400">· {store.name}</span></h2>
+        {step > 0 && <button onClick={() => { setStep(step - 1); step === 1 ? setSig('') : setOwnerSig(''); }} className="rounded-lg px-2.5 py-1.5 text-[12px] font-semibold text-stone-500 hover:bg-stone-100 cursor-pointer">قبلی</button>}
+      </header>
+      <div className="flex-1 overflow-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {step === 0 && <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-stone-100 p-1">{(['manager', 'cashier'] as SignRole[]).map((r) =>
+            <button key={r} onClick={() => setRole(r)} className={`rounded-lg py-2 text-[13px] font-semibold cursor-pointer ${role === r ? 'bg-white shadow-sm' : 'text-stone-500'}`}>{ROLE[r]}</button>)}</div>
+          <input autoFocus value={signer} onChange={(e) => setSigner(e.target.value)} placeholder={`نام و نام خانوادگی ${ROLE[role]}`} className={`${inp} w-full`} />
+          <input inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} placeholder="کد کارمندی" className={`${inp} w-full`} />
+          <button disabled={!signer.trim() || !code.trim()} onClick={() => setStep(1)} className={main}>ادامه</button>
+        </div>}
+        {step === 1 && <div className="space-y-3">
+          <div className="whitespace-pre-line rounded-2xl bg-stone-50 p-4 text-[13.5px] leading-8 text-stone-700">{text}</div>
+          <div className="text-[12px] font-semibold text-stone-500">امضای {signer}</div>
+          <Pad key="a" onChange={setSig} />
+          <button disabled={!sig} onClick={() => setStep(2)} className={main}>تأیید و ادامه</button>
+        </div>}
+        {step === 2 && <div className="space-y-3">
+          <div className="text-[12px] font-semibold text-stone-500">امضای مسئول راه‌اندازی · {owner}</div>
+          <Pad key="b" onChange={setOwnerSig} />
+          <button disabled={!ownerSig} onClick={finish} className={`${main} bg-emerald-600`}>ثبت و دریافت PDF</button>
+        </div>}
+      </div>
     </div></div>;
 }
 
