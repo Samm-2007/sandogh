@@ -162,21 +162,15 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
   const addNote = () => { if (note.trim()) { dispatch({ t: 'addNote', storeId: store.id, id: uid(), text: note.trim(), at: Date.now() }); setNote(''); } };
   return <div className="fade vv z-40 bg-stone-900/20" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <aside className="drawer absolute inset-0 flex w-full flex-col overflow-hidden bg-white sm:inset-y-2 sm:left-2 sm:right-auto sm:w-[min(560px,calc(100%-16px))] sm:rounded-[22px] bg-white shadow-[0_30px_80px_-20px_rgb(0_0_0/.4)]">
-      <header className="border-b border-stone-100 px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6">
-        <div className="mb-4 flex items-center justify-between">
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold ${st.soft} ${st.text}`}><span className={`size-1.5 rounded-full ${st.dot}`} />{st.label}</span>
-          <div className="flex gap-1">
-            <button onClick={() => setEditing(true)} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer" title="ویرایش"><Icon d={I.pen} /></button>
-            <button onClick={() => { if (confirm(`«${store.name}» حذف شود؟`)) { dispatch({ t: 'removeStore', id: store.id }); onClose(); } }} className="rounded-lg p-2 text-stone-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer" title="حذف"><Icon d={I.trash} /></button>
-            <button onClick={onClose} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer"><Icon d={I.x} /></button>
-          </div>
-        </div>
-        <h2 className="text-[24px] font-black leading-tight tracking-tight">{store.name}</h2>
-        <div className="mt-2 flex items-center gap-2 text-[13px] text-stone-500"><Avatar name={store.owner} /><span className="font-semibold text-stone-700">{store.owner}</span><span className="text-stone-300">·</span><span>از {ago(store.createdAt)}</span></div>
-        <div className="mt-5 flex items-end gap-4">
-          <div className="text-[40px] font-black leading-none tabular-nums tracking-tight">{fa(p.pct)}<span className="text-[20px] text-stone-300">٪</span></div>
-          <div className="flex-1 pb-2"><div className="mb-1.5 text-[12px] text-stone-500">{fa(p.done)} از {fa(p.total)} مرحله انجام شده</div><Bar pct={p.pct} /></div>
-        </div>
+      <header className="relative flex items-center gap-2 border-b border-stone-100 px-3 py-2 pt-[max(.5rem,env(safe-area-inset-top))] sm:px-4">
+        <button onClick={onClose} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer" title="بستن"><Icon d={I.x} /></button>
+        <span className={`size-2 shrink-0 rounded-full ${st.dot}`} title={st.label} />
+        <h2 className="min-w-0 truncate text-[16px] font-black">{store.name}</h2>
+        <span className="hidden shrink-0 min-[400px]:inline"><Avatar name={store.owner} size="size-6 text-[10px]" /></span>
+        <span className="mr-auto shrink-0 text-[12px] font-bold tabular-nums text-stone-500">{fa(p.done)}/{fa(p.total)}</span>
+        <button onClick={() => setEditing(true)} className="rounded-lg p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 cursor-pointer" title="ویرایش"><Icon d={I.pen} /></button>
+        <button onClick={() => { if (confirm(`«${store.name}» حذف شود؟`)) { dispatch({ t: 'removeStore', id: store.id }); onClose(); } }} className="rounded-lg p-2 text-stone-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer" title="حذف"><Icon d={I.trash} /></button>
+        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-stone-100"><div className={`h-full ${p.pct === 100 ? 'bg-emerald-500' : 'bg-ink'} transition-all`} style={{ width: `${p.pct}%` }} /></div>
       </header>
 
       <div className="flex-1 overflow-auto">
