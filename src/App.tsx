@@ -198,13 +198,11 @@ function Drawer({ store, owners, dispatch, onClose }: { store: Store; owners: st
         <SignList store={store} dispatch={dispatch} role={signRole} onRole={setSignRole} />
         <section className="border-t border-stone-100 bg-stone-50/60 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-6">
           <h3 className="mb-3 text-[13px] font-bold text-stone-500">یادداشت‌ها {store.notes.length > 0 && <span className="text-stone-400">· {fa(store.notes.length)}</span>}</h3>
-          <div className="rounded-2xl border border-stone-200 bg-white p-1.5 focus-within:border-stone-400 focus-within:ring-4 focus-within:ring-stone-200/60 transition">
-            <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="مشکل، پیگیری، یا هر نکته‌ای…"
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addNote(); } }}
-              className="block w-full resize-none bg-transparent px-2.5 py-2 text-[14px] leading-7 outline-none placeholder:text-stone-400" />
-            <div className="flex items-center justify-between gap-2 px-2 pb-1"><span className="sm:hidden" /><span className="hidden text-[11px] text-stone-400 sm:inline">Enter ثبت · Shift+Enter خط جدید</span>
-              <button onClick={addNote} disabled={!note.trim()} className={`${btnDark} px-3 py-1.5`}>ثبت</button></div>
-          </div>
+          <form onSubmit={(e) => { e.preventDefault(); addNote(); }} className="flex items-center gap-1.5 rounded-2xl border border-stone-200 bg-white p-1.5 focus-within:border-stone-400 transition">
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="مشکل، پیگیری، یا هر نکته‌ای…" enterKeyHint="send"
+              className="min-w-0 flex-1 bg-transparent px-2.5 py-1.5 text-[14px] outline-none placeholder:text-stone-400" />
+            <button disabled={!note.trim()} className={`${btnDark} px-3 py-1.5`}>ثبت</button>
+          </form>
           <ul className="mt-4 space-y-2">
             {store.notes.map((n) => <li key={n.id} className="group rise rounded-2xl border border-stone-200/70 bg-white px-4 py-3">
               <p className="whitespace-pre-wrap text-[14px] leading-7 text-stone-800">{n.text}</p>
